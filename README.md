@@ -28,9 +28,30 @@ npm run build
 
 Output goes to `dist/`. Preview locally with `npm run preview`.
 
-## Usage
+## Loading GPX Files
 
-Drag and drop a `.gpx` file (or multiple files) onto the viewport. The route renders immediately and the animated dot begins travelling the path.
+### Manifest (recommended for multi-leg trips)
+
+1. Place `.gpx` files in `public/gpx/`
+2. Run `node scripts/build-index.js` to scaffold a manifest
+3. Edit `public/gpx/index.json` to group files into legs:
+   ```json
+   [
+     { "leg": "Leg 1", "colour": null, "files": ["day1a.gpx", "day1b.gpx"] },
+     { "leg": "Leg 2", "colour": null, "files": ["day2.gpx"] }
+   ]
+   ```
+4. Start the dev server — legs load automatically and stitch geographically
+
+### Drag-and-drop
+
+Drag `.gpx` files onto the viewport at any time. Each file is added as a standalone leg with an auto-assigned colour.
+
+## Controls
+
+- **Orbit** — click and drag to rotate, scroll to zoom
+- **Elevation slider** — exaggerate terrain height (1x–10x)
+- **Reset view** — snap back to the default cinematic camera angle
 
 ## Hosting
 
