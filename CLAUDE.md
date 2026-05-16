@@ -12,6 +12,8 @@ GPX Journey Visualiser — a React + Vite + Three.js web app that renders GPX ro
 - `npm run build` — production build
 - `npm run lint` — ESLint
 - `npm run preview` — preview production build locally
+- `node scripts/build-index.js` — scaffold public/gpx/index.json from .gpx files
+- `node tests/gpxParser.test.js [file.gpx]` — run parser + transform tests
 
 ## Architecture
 
@@ -19,30 +21,44 @@ GPX Journey Visualiser — a React + Vite + Three.js web app that renders GPX ro
 src/
 ├── components/
 │   ├── canvas/       # Three.js scene components (R3F)
-│   │   ├── Scene.jsx
-│   │   ├── RouteTrail.jsx
-│   │   ├── AnimatedDot.jsx
-│   │   └── CameraController.jsx
+│   │   ├── RouteTrail.jsx      — renders tracks as 3D lines, split by segment
+│   │   ├── SeaPlane.jsx        — semi-transparent navy reference plane at minY with grid
+│   │   ├── CameraFit.jsx       — auto-positions camera on load/reset
+│   │   ├── AnimatedDot.jsx     — (placeholder) animated dot along route
+│   │   └── CameraController.jsx — (placeholder) per-view-mode camera logic
 │   └── ui/           # HTML overlay UI (Tailwind)
-│       ├── DropZone.jsx
-│       ├── ViewModeSelector.jsx
-│       └── PlaybackControls.jsx
+│       ├── DropZone.jsx        — full-screen or corner drag-and-drop
+│       ├── ControlsPanel.jsx   — elevation slider + reset view button
+│       ├── ViewModeSelector.jsx — (placeholder)
+│       └── PlaybackControls.jsx — (placeholder)
 ├── hooks/            # Custom React hooks
-├── utils/            # Pure functions (GPX parsing, coordinate transforms)
-├── stores/           # App state (loaded tracks, playback, view mode)
-└── constants/        # Enums and config (view modes, colours)
+├── utils/
+│   ├── gpxParser.js      — parse GPX XML → normalised point array + metadata
+│   ├── geoTransform.js   — GPS coords → scene space (with overrideBounds for multi-leg)
+│   ├── loadManifest.js   — fetch index.json, parse all legs, shared global bounds
+│   └── cameraDefaults.js — compute default camera position from scene bounds
+├── stores/
+│   └── useJourneyStore.js — Zustand store (tracks, playback, view, elevation)
+└── constants/
+    ├── viewModes.js    — FREE_ROTATE, ISOMETRIC, FIRST_PERSON, TOP_DOWN
+    ├── colourModes.js  — SPEED, ELEVATION
+    └── palette.js      — 10 vivid track colours
 ```
 
 ## Key Libraries
 
 - **@react-three/fiber** + **@react-three/drei** — React renderer for Three.js
 - **three** — 3D engine
-- **gpxparser** — GPX file parsing
+- **zustand** — state management (works across R3F canvas boundary)
 - **tailwindcss v4** — styling (via `@tailwindcss/vite` plugin)
 
 ## Conventions
 
 - Canvas (3D) components live in `components/canvas/`, HTML UI in `components/ui/`
-- Coordinate conversion from GPS → scene space is isolated in `utils/coordinates.js`
-- State management goes in `stores/` (no library chosen yet — zustand recommended)
-- View mode constants defined in `constants/viewModes.js`
+- Coordinate conversion from GPS → scene space is in `utils/geoTransform.js`
+- Multi-leg trips share global bounds via `computeGlobalBounds()` + `overrideBounds` option
+- Camera default is computed dynamically from scene bounds (azimuth 45°, polar 30°, distance from bbox diagonal) — never hardcoded coordinates
+- SeaPlane renders at global minY and responds to elevation exaggeration changes
+- Reset view button triggers `cameraResetKey` in the store, which CameraFit listens to
+- GPX files in `public/gpx/` are gitignored — manifest is `public/gpx/index.json`
+- View mode and colour mode constants defined in `src/constants/`

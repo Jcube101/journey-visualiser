@@ -2,11 +2,16 @@
 
 ## Phase 1 — Core single-leg visualiser
 
-- GPX drag-and-drop file loading
-- Coordinate transform (GPS → 3D scene space)
-- Free-rotate 3D view with OrbitControls
-- Animated dot travelling the route
-- Basic playback controls (play/pause, scrub)
+- [x] GPX drag-and-drop file loading
+- [x] Coordinate transform (GPS → 3D scene space)
+- [x] Free-rotate 3D view with OrbitControls
+- [x] Multi-leg manifest loading with shared global bounds
+- [x] Elevation exaggeration slider (1x–10x)
+- [x] Sea level reference plane with grid
+- [x] Dynamic camera default (azimuth 45°, polar 30°, auto-fitted distance)
+- [x] Reset view button
+- [ ] Animated dot travelling the route
+- [ ] Basic playback controls (play/pause, scrub)
 
 ## Phase 2 — View modes and colour
 

@@ -1,19 +1,68 @@
+import { useEffect, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
+import RouteTrail from './components/canvas/RouteTrail'
+import SeaPlane from './components/canvas/SeaPlane'
+import CameraFit from './components/canvas/CameraFit'
+import DropZone from './components/ui/DropZone'
+import ControlsPanel from './components/ui/ControlsPanel'
+import { useJourneyStore } from './stores/useJourneyStore'
+import { loadManifest } from './utils/loadManifest'
 
 export default function App() {
+  const tracks = useJourneyStore((s) => s.tracks)
+  const globalSceneMetadata = useJourneyStore((s) => s.globalSceneMetadata)
+  const loadLegs = useJourneyStore((s) => s.loadLegs)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadManifest().then((legs) => {
+      if (legs.length > 0) loadLegs(legs)
+      setLoading(false)
+    })
+  }, [loadLegs])
+
+  const cameraTarget = globalSceneMetadata || tracks[0]?.sceneMetadata
+
   return (
-    <div className="w-full h-full relative">
-      <Canvas camera={{ position: [0, 5, 10], fov: 60 }}>
-        <ambientLight intensity={0.3} />
-        <directionalLight position={[5, 10, 5]} intensity={0.8} />
-        <OrbitControls />
-        <gridHelper args={[20, 20, '#1e293b', '#1e293b']} />
+    <div className="w-full h-full relative bg-[#0a0a0f]">
+      <Canvas camera={{ position: [0, 50, 80], fov: 50 }}>
+        <ambientLight intensity={0.4} />
+        <directionalLight position={[50, 100, 50]} intensity={0.6} />
+        <RouteTrail />
+        <SeaPlane />
+        {cameraTarget && <CameraFit sceneMetadata={cameraTarget} />}
+        <OrbitControls makeDefault enableDamping dampingFactor={0.1} />
+        {tracks.length === 0 && !loading && (
+          <gridHelper args={[20, 20, '#1e293b', '#1e293b']} />
+        )}
       </Canvas>
 
-      <div className="absolute top-4 left-4 text-white/80 text-sm font-medium">
-        Journey Visualiser
-      </div>
+      {!loading && <DropZone />}
+      {tracks.length > 0 && <ControlsPanel />}
+
+      {loading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center">
+          <div className="text-white/50 text-sm">Loading journey...</div>
+        </div>
+      )}
+
+      {tracks.length > 0 && (
+        <div className="absolute top-4 left-4 text-white/60 text-xs space-y-1">
+          {tracks.map((t) => (
+            <div key={t.id} className="flex items-center gap-2">
+              <span
+                className="w-3 h-3 rounded-full inline-block"
+                style={{ backgroundColor: t.colour }}
+              />
+              <span>{t.label}</span>
+              <span className="text-white/30">
+                {t.metadata.totalPoints} pts / {t.metadata.segments} seg
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -31,3 +31,15 @@ Source file: Bengaluru → Dindigul leg.
 - 8 hours 36 minutes duration
 - Elevation range: 28m – 846m
 - 3 track segments within a single GPX file
+
+## 2026-05-17 — Dynamic camera positioning
+
+### Why spherical angles, not hardcoded coordinates
+
+Hardcoded camera positions are trip-specific — a good angle for a west-east route looks wrong for a north-south one. Spherical coordinates relative to the scene centre (azimuth + polar angle + distance from bounding box diagonal) produce a consistently good cinematic angle regardless of route direction or scale.
+
+Final formula: azimuth 45° (diagonal view), polar 30° above horizontal, distance = bbox diagonal × 1.2.
+
+### Debug overlay pattern
+
+When tuning visual parameters like camera angle, temporarily expose the live values in the UI (position + target updating in real time as you orbit) so you can find a good angle empirically. Then translate the discovery into a generic formula and remove the overlay. This is faster than guessing multipliers in code and rebuilding.

@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create *)",
+      "Bash(Move-Item temp-scaffold\\\\* . -Force)",
+      "Bash(Move-Item temp-scaffold\\\\.* . -Force -ErrorAction SilentlyContinue)",
+      "Bash(Remove-Item temp-scaffold *)",
+      "PowerShell(Move-Item *)",
+      "PowerShell(npm install *)",
+      "PowerShell(npm run *)",
+      "PowerShell(git add *)",
+      "PowerShell(git push *)",
+      "PowerShell(node tests/gpxParser.test.js 2>&1)",
+      "WebFetch(domain:localhost)",
+      "PowerShell(Start-Process \"http://localhost:5173\")",
+      "PowerShell(New-Item *)",
+      "PowerShell(node scripts/build-index.js 2>&1)"
+    ]
+  }
+}

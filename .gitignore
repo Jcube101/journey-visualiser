@@ -1,3 +1,7 @@
+# GPX files — personal location data, never commit
+public/gpx/*
+!public/gpx/.gitkeep
+
 # Logs
 logs
 *.log
