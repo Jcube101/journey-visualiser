@@ -21,24 +21,34 @@ GPX Journey Visualiser — a React + Vite + Three.js web app that renders GPX ro
 src/
 ├── components/
 │   ├── canvas/       # Three.js scene components (R3F)
-│   │   ├── RouteTrail.jsx      — renders tracks as 3D lines, split by segment
-│   │   ├── SeaPlane.jsx        — semi-transparent navy reference plane at minY with grid
-│   │   ├── CameraFit.jsx       — auto-positions camera on load/reset
-│   │   ├── AnimatedDot.jsx     — glowing sphere that travels all legs in timestamp order
-│   │   └── CameraController.jsx — (placeholder) per-view-mode camera logic
+│   │   ├── RouteTrail.jsx        — renders tracks as 3D lines, split by segment
+│   │   ├── RouteGlow.jsx         — thicker low-opacity duplicate lines behind each route for emissive glow
+│   │   ├── SeaPlane.jsx          — semi-transparent navy reference plane at minY with grid
+│   │   ├── CameraFit.jsx         — auto-positions camera on load/reset
+│   │   ├── AnimatedDot.jsx       — glowing sphere that travels all legs in driving-time order
+│   │   ├── DotTrail.jsx          — fading 50-point comet tail behind dot (additive blending)
+│   │   ├── AutoOrbit.jsx         — slow camera rotation during playback, pauses on mouse interaction, resumes after 2s
+│   │   ├── CameraFollow.jsx      — smooth pan keeping dot centred without changing orbit angle
+│   │   ├── LegLabels.jsx         — billboard text at each leg's start point (always faces camera)
+│   │   ├── AmbientParticles.jsx  — 200 slowly drifting faint particles for depth
+│   │   ├── DayNightBackground.jsx — background colour shifts by GPX timestamp (black at night, dark navy by day)
+│   │   └── CameraController.jsx  — (placeholder) per-view-mode camera logic
 │   └── ui/           # HTML overlay UI (Tailwind)
-│       ├── DropZone.jsx        — full-screen or corner drag-and-drop
-│       ├── ControlsPanel.jsx   — elevation slider + reset view button
-│       ├── ViewModeSelector.jsx — (placeholder)
-│       └── PlaybackControls.jsx — play/pause, scrub, speed selector, timestamp, leg indicator
-├── hooks/            # Custom React hooks
+│       ├── DropZone.jsx          — full-screen or corner drag-and-drop
+│       ├── ControlsPanel.jsx     — elevation slider + reset view button
+│       ├── SettingsPanel.jsx     — gear icon button → toggles/sliders panel for all visual features
+│       ├── LiveStatsBar.jsx      — live elevation, speed, distance, driving time as dot moves
+│       ├── ViewModeSelector.jsx  — (placeholder)
+│       └── PlaybackControls.jsx  — play/pause, scrub, speed selector, driving time elapsed, leg indicator
+├── hooks/
+│   └── usePlaybackPoints.js — shared hook: builds timestamp-sorted combined point array with cumulative driving time
 ├── utils/
 │   ├── gpxParser.js      — parse GPX XML → normalised point array + metadata
 │   ├── geoTransform.js   — GPS coords → scene space (with overrideBounds for multi-leg)
 │   ├── loadManifest.js   — fetch index.json, parse all legs, shared global bounds
 │   └── cameraDefaults.js — compute default camera position from scene bounds
 ├── stores/
-│   └── useJourneyStore.js — Zustand store (tracks, playback, view, elevation)
+│   └── useJourneyStore.js — Zustand store (tracks, playback, view, elevation, settings, dotPosition/dotData)
 └── constants/
     ├── viewModes.js    — FREE_ROTATE, ISOMETRIC, FIRST_PERSON, TOP_DOWN
     ├── colourModes.js  — SPEED, ELEVATION
@@ -62,5 +72,12 @@ src/
 - Reset view button triggers `cameraResetKey` in the store, which CameraFit listens to
 - GPX files in `public/gpx/` are gitignored — manifest is `public/gpx/index.json`
 - View mode and colour mode constants defined in `src/constants/`
-- AnimatedDot combines all visible tracks into one timestamp-sorted array and uses an accumulator pattern in useFrame to advance based on real GPX time gaps × playback speed
+- AnimatedDot publishes `dotPosition` and `dotData` to the Zustand store each frame for cross-component communication (DotTrail, CameraFollow, LiveStatsBar, DayNightBackground all read from it)
+- Playback uses cumulative driving time, not wall clock time — gaps > 5 minutes (REST_THRESHOLD_MS) are skipped as rest stops; the `usePlaybackPoints` hook stamps each point with `drivingTimeMs`
 - Playback is continuous across legs — dot transitions seamlessly when one leg ends and the next begins
+- Settings slice in Zustand store holds all visual feature toggles and slider values with defaults:
+  - `autoOrbit` (true), `autoOrbitSpeed` (0.05 rad/s)
+  - `dotTrail` (true), `dotTrailWidth` (3)
+  - `cameraFollow` (false)
+  - `legLabels` (true), `ambientParticles` (true), `routeGlow` (true)
+  - `liveStats` (true), `dayNightBg` (true)

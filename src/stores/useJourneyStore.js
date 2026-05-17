@@ -107,6 +107,28 @@ export const useJourneyStore = create((set, get) => ({
   setColourMode: (mode) => set({ colourMode: mode }),
   resetCamera: () => set((s) => ({ cameraResetKey: s.cameraResetKey + 1 })),
 
+  // --- Settings ---
+  settings: {
+    autoOrbit: true,
+    autoOrbitSpeed: 0.05,
+    dotTrail: true,
+    dotTrailWidth: 3,
+    cameraFollow: false,
+    legLabels: true,
+    ambientParticles: true,
+    routeGlow: true,
+    liveStats: true,
+    dayNightBg: true,
+  },
+
+  setSetting: (key, value) =>
+    set((s) => ({ settings: { ...s.settings, [key]: value } })),
+
+  // --- Dot position (updated by AnimatedDot for other components to read) ---
+  dotPosition: null,
+  dotData: null,
+  setDotState: (position, data) => set({ dotPosition: position, dotData: data }),
+
   setElevationExaggeration: (value) => {
     const s = get()
     if (s.tracks.length === 0) {

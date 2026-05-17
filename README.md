@@ -43,6 +43,18 @@ Output goes to `dist/`. Preview locally with `npm run preview`.
    ```
 4. Start the dev server — legs load automatically and stitch geographically
 
+**Important:** If OsmAnd split a single leg into multiple GPX files (e.g. when recording was paused/resumed), all split files must be listed under the **same leg entry**. If they end up as separate legs, the animated dot will jump through empty space between file endpoints:
+
+```json
+[
+  {
+    "leg": "Bengaluru to Dindigul",
+    "colour": null,
+    "files": ["2026-01-15_part1.gpx", "2026-01-15_part2.gpx", "2026-01-15_part3.gpx"]
+  }
+]
+```
+
 ### Drag-and-drop
 
 Drag `.gpx` files onto the viewport at any time. Each file is added as a standalone leg with an auto-assigned colour.
@@ -54,6 +66,16 @@ Drag `.gpx` files onto the viewport at any time. Each file is added as a standal
 - **Reset view** — snap back to the default cinematic camera angle
 - **Playback** — play/pause, scrub through the timeline, speed selector (1x–3600x)
 - **3600x speed** — plays a full 24-hour journey in 24 seconds for social media clips
+
+## Claude Code CLI
+
+This project was built with [Claude Code](https://claude.ai/code). For uninterrupted builds on trusted local projects, you can use:
+
+```bash
+claude --dangerously-skip-permissions
+```
+
+This skips tool approval prompts so Claude can edit files, run builds, and execute commands without pausing for confirmation. Only use this on local projects where you review changes via `git diff` before committing.
 
 ## Hosting
 

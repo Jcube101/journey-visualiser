@@ -1,10 +1,9 @@
-import { useMemo } from 'react'
 import { useJourneyStore } from '../../stores/useJourneyStore'
+import { usePlaybackPoints } from '../../hooks/usePlaybackPoints'
 
 const SPEED_OPTIONS = [1, 2, 5, 10, 50, 100, 3600]
 
 export default function PlaybackControls() {
-  const tracks = useJourneyStore((s) => s.tracks)
   const isPlaying = useJourneyStore((s) => s.isPlaying)
   const playbackSpeed = useJourneyStore((s) => s.playbackSpeed)
   const currentPointIndex = useJourneyStore((s) => s.currentPointIndex)
@@ -13,26 +12,13 @@ export default function PlaybackControls() {
   const setPlaybackSpeed = useJourneyStore((s) => s.setPlaybackSpeed)
   const setCurrentPointIndex = useJourneyStore((s) => s.setCurrentPointIndex)
 
-  const allPoints = useMemo(() => {
-    if (tracks.length === 0) return []
-    const combined = tracks
-      .filter((t) => t.visible)
-      .flatMap((t) => t.scenePoints.map((p) => ({ ...p, trackId: t.id, colour: t.colour, label: t.label })))
-    combined.sort((a, b) => {
-      if (!a.time || !b.time) return 0
-      return a.time.getTime() - b.time.getTime()
-    })
-    return combined
-  }, [tracks])
+  const allPoints = usePlaybackPoints()
 
   if (allPoints.length === 0) return null
 
   const current = allPoints[currentPointIndex] || allPoints[0]
-  const progress = allPoints.length > 1 ? currentPointIndex / (allPoints.length - 1) : 0
-
-  const timestamp = current?.time
-    ? formatTimestamp(current.time, allPoints[0]?.time)
-    : '—'
+  const drivingMs = current?.drivingTimeMs || 0
+  const totalMs = allPoints[allPoints.length - 1]?.drivingTimeMs || 0
 
   const legLabel = current?.label || '—'
 
@@ -80,20 +66,14 @@ export default function PlaybackControls() {
           />
           {legLabel}
         </span>
-        <span>{timestamp}</span>
+        <span>{formatDrivingTime(drivingMs)} / {formatDrivingTime(totalMs)} driven</span>
       </div>
     </div>
   )
 }
 
-function formatTimestamp(time, startTime) {
-  if (!time) return '—'
-  const dayNum = startTime
-    ? Math.floor((time.getTime() - startTime.getTime()) / (1000 * 60 * 60 * 24)) + 1
-    : 1
-  const hours = time.getHours()
-  const minutes = time.getMinutes().toString().padStart(2, '0')
-  const ampm = hours >= 12 ? 'PM' : 'AM'
-  const h12 = hours % 12 || 12
-  return `Day ${dayNum} — ${h12}:${minutes} ${ampm}`
+function formatDrivingTime(ms) {
+  const h = Math.floor(ms / 3600000)
+  const m = Math.floor((ms % 3600000) / 60000)
+  return `${h}h ${m.toString().padStart(2, '0')}m`
 }

@@ -1,27 +1,17 @@
-import { useRef, useMemo } from 'react'
+import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useJourneyStore } from '../../stores/useJourneyStore'
+import { usePlaybackPoints } from '../../hooks/usePlaybackPoints'
 
 export default function AnimatedDot() {
   const meshRef = useRef()
   const lightRef = useRef()
   const accumulatorRef = useRef(0)
 
-  const tracks = useJourneyStore((s) => s.tracks)
   const isPlaying = useJourneyStore((s) => s.isPlaying)
   const currentPointIndex = useJourneyStore((s) => s.currentPointIndex)
 
-  const allPoints = useMemo(() => {
-    if (tracks.length === 0) return []
-    const combined = tracks
-      .filter((t) => t.visible)
-      .flatMap((t) => t.scenePoints.map((p) => ({ ...p, trackId: t.id, colour: t.colour })))
-    combined.sort((a, b) => {
-      if (!a.time || !b.time) return 0
-      return a.time.getTime() - b.time.getTime()
-    })
-    return combined
-  }, [tracks])
+  const allPoints = usePlaybackPoints()
 
   useFrame((_, delta) => {
     if (allPoints.length < 2) return
@@ -38,8 +28,8 @@ export default function AnimatedDot() {
       while (idx < allPoints.length - 1) {
         const cur = allPoints[idx]
         const nxt = allPoints[idx + 1]
-        const gpxGap = cur.time && nxt.time ? nxt.time.getTime() - cur.time.getTime() : 100
-        const effectiveGap = Math.max(gpxGap, 1)
+        const drivingGap = nxt.drivingTimeMs - cur.drivingTimeMs
+        const effectiveGap = Math.max(drivingGap, 1)
 
         if (accumulatorRef.current >= effectiveGap) {
           accumulatorRef.current -= effectiveGap
@@ -68,10 +58,10 @@ export default function AnimatedDot() {
     let x = pt.x, y = pt.y, z = pt.z
 
     const nxt = allPoints[idx + 1]
-    if (nxt && pt.time && nxt.time) {
-      const gpxGap = nxt.time.getTime() - pt.time.getTime()
-      if (gpxGap > 0) {
-        const t = Math.min(accumulatorRef.current / gpxGap, 1)
+    if (nxt) {
+      const drivingGap = nxt.drivingTimeMs - pt.drivingTimeMs
+      if (drivingGap > 0) {
+        const t = Math.min(accumulatorRef.current / drivingGap, 1)
         x = pt.x + (nxt.x - pt.x) * t
         y = pt.y + (nxt.y - pt.y) * t
         z = pt.z + (nxt.z - pt.z) * t
@@ -80,6 +70,11 @@ export default function AnimatedDot() {
 
     meshRef.current.position.set(x, y, z)
     if (lightRef.current) lightRef.current.position.set(x, y, z)
+
+    useJourneyStore.setState({
+      dotPosition: { x, y, z },
+      dotData: pt,
+    })
 
     const colour = pt.colour || '#ffffff'
     if (meshRef.current.children[0]?.material) {

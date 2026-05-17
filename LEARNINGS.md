@@ -43,3 +43,21 @@ Final formula: azimuth 45° (diagonal view), polar 30° above horizontal, distan
 ### Debug overlay pattern
 
 When tuning visual parameters like camera angle, temporarily expose the live values in the UI (position + target updating in real time as you orbit) so you can find a good angle empirically. Then translate the discovery into a generic formula and remove the overlay. This is faster than guessing multipliers in code and rebuilding.
+
+## 2026-05-17 — Playback and visual polish
+
+### Cumulative driving time replaces wall clock time
+
+Real GPX timestamps include overnight stops, city rest periods, and any pause longer than a few minutes. Playing back wall clock time means the dot sits motionless for hours at every stop — unusable for a cinematic visualisation. The fix: when building the combined point array, calculate the time gap between consecutive points. If the gap exceeds 5 minutes (REST_THRESHOLD_MS), treat it as a rest stop and skip it — jump directly to the next point with 0ms added. Replace the raw timestamp gaps with a cumulative driving-time offset (`drivingTimeMs`) on each point. All playback advancement and interpolation uses this driving timeline.
+
+### 3600x speed calculation
+
+Total driving time for the Bengaluru trip is roughly 21 hours. At 3600x speed, 21 hours of driving time plays back in ~21 seconds — close enough to the 24-second social clip target. The hook logs the exact total and the ideal multiplier for a 24s playback on first computation.
+
+### Split file floating dot bug
+
+When a leg's GPX files aren't all listed in `index.json`, the dot jumps through empty space between file endpoints because there's no position data connecting them. The fix is always to group all split files for the same leg under the same leg entry in the manifest. This isn't a code fix — it's a data problem.
+
+### CLI auto mode and --dangerously-skip-permissions
+
+`--dangerously-skip-permissions` was used for this session. Claude Code's auto mode (skipping tool approval prompts) requires a Pro Max subscription or above; using the flag bypasses this for trusted local projects where every change is reviewed via git diff before committing.
