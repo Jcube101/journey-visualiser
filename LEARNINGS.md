@@ -61,3 +61,17 @@ When a leg's GPX files aren't all listed in `index.json`, the dot jumps through 
 ### CLI auto mode and --dangerously-skip-permissions
 
 `--dangerously-skip-permissions` was used for this session. Claude Code's auto mode (skipping tool approval prompts) requires a Pro Max subscription or above; using the flag bypasses this for trusted local projects where every change is reviewed via git diff before committing.
+
+## 2026-05-18 — Leg naming and city labels
+
+### Leg names must come from index.json, never hardcoded
+
+The tool is designed for any future trip, not just this one. Hardcoding city names anywhere in the code would make it trip-specific. All display names (legend, playback bar, labels) flow from the `leg` field in index.json — rename the leg there and the entire UI updates.
+
+### Deduplication by proximity, not just by name
+
+City labels on the 3D map are deduplicated by matching name AND proximity (within 2 scene units). This is better than name-only deduplication because future trips may have repeated city names at genuinely different locations (e.g. visiting the same city on different days via different routes that don't overlap geographically).
+
+### Colour is sufficient to distinguish legs on the map
+
+Verbose labels like "Bengaluru → Dindigul" on the 3D map add clutter without adding clarity — the leg colours already distinguish segments, and the legend shows full names. Billboard labels should be minimal: just the city name at that point.

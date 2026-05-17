@@ -16,21 +16,26 @@
 - [x] Animated dot travelling the route (glowing sphere with halo + point light)
 - [x] Playback controls (play/pause, scrub, speed: 1x–3600x, driving time elapsed, leg indicator)
 - [x] Cumulative driving-time playback (gaps > 5 min skipped as rest stops)
+- [x] 3600x playback speed for ~21 second social clip
 - [x] Dot trail — fading 50-point comet tail with additive blending
 - [x] Auto-orbit — slow camera rotation during playback, pauses on mouse grab, resumes after 2s inactivity
 - [x] Camera follow — smooth pan keeping dot centred
-- [x] Leg labels — billboard text at each leg's start point
+- [x] City name billboard labels on 3D map (deduplicated by location proximity)
+- [x] Leg names driven by index.json `leg` field (no hardcoding)
+- [x] Split-file leg grouping support in index.json (multiple GPX files per leg)
 - [x] Ambient particles — 200 faint drifting particles for scene depth
 - [x] Route glow — thicker low-opacity duplicate lines behind each route
 - [x] Day/night background — shifts by GPX timestamp (black at night, dark navy by day)
 - [x] Live stats bar — elevation, speed, distance, driving time
 - [x] Settings panel — gear icon with toggles/sliders for all visual features
 
-## Phase 3 — Colour modes and stats (next)
+## Phase 3 — Colour modes, charts, and intro (next)
 
-- [ ] Speed colour mode — route trail coloured by speed gradient replacing leg colours
-- [ ] Elevation colour mode — route trail coloured by elevation gradient
-- [ ] Stats overlay panel with elevation profile chart
+- [ ] Speed colour mode — single gradient ribbon (blue→green→yellow→red) replacing flat leg colours
+- [ ] Elevation colour mode — same gradient approach mapped to elevation
+- [ ] Colour mode toggle in settings panel
+- [ ] Elevation profile chart — 2D graph synced to dot position
+- [ ] Intro animation — slow dramatic camera fly-in on load
 - [ ] Speed graph alongside 3D view
 
 ## Phase 4 — View modes

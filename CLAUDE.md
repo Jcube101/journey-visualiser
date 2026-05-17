@@ -81,3 +81,5 @@ src/
   - `cameraFollow` (false)
   - `legLabels` (true), `ambientParticles` (true), `routeGlow` (true)
   - `liveStats` (true), `dayNightBg` (true)
+- City name billboard labels are deduplicated by proximity (DEDUP_RADIUS = 2 scene units) so a junction city like Dindigul only appears once despite being shared by multiple legs
+- Leg names in legend (top-left) and playback bar are driven entirely by the `leg` field in index.json — no hardcoding anywhere

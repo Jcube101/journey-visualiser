@@ -43,6 +43,8 @@ Output goes to `dist/`. Preview locally with `npm run preview`.
    ```
 4. Start the dev server — legs load automatically and stitch geographically
 
+**Naming:** The `leg` field is what appears in the UI legend and playback bar — name legs descriptively (e.g. `"Bengaluru → Dindigul"`) not generically (`"Leg 1"`). The origin city (text before the `→`) is also used as the billboard label on the 3D map.
+
 **Important:** If OsmAnd split a single leg into multiple GPX files (e.g. when recording was paused/resumed), all split files must be listed under the **same leg entry**. If they end up as separate legs, the animated dot will jump through empty space between file endpoints:
 
 ```json

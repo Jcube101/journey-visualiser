@@ -146,7 +146,9 @@ Subtle emissive glow on route lines: a second `<Line>` per segment rendered at `
 
 ### Leg Labels
 
-Billboard `<Text>` at each leg's start point. Always faces camera. Small white text at 60% opacity with thin black outline. Positioned 1.5 units above the start point.
+Billboard `<Text>` showing the **origin city name only** (text before the `→` separator in the leg name), not the full leg name. Deduplicated by location proximity — if two legs share a start point within `DEDUP_RADIUS` (2 scene units) and have the same city name, only one label is rendered. Always faces camera. Small white text at 60% opacity with thin black outline. Positioned 1.5 units above the start point.
+
+Leg names in all UI elements (legend, playback bar, live stats) read directly from the `leg` field in index.json — no hardcoding.
 
 ### Ambient Particles
 
