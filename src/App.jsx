@@ -18,6 +18,7 @@ import PlaybackControls from './components/ui/PlaybackControls'
 import SettingsPanel from './components/ui/SettingsPanel'
 import LiveStatsBar from './components/ui/LiveStatsBar'
 import GradientLegend from './components/ui/GradientLegend'
+import ElevationProfile from './components/ui/ElevationProfile'
 import { useJourneyStore } from './stores/useJourneyStore'
 import { COLOUR_MODES } from './constants/colourModes'
 import { loadManifest } from './utils/loadManifest'
@@ -62,6 +63,7 @@ export default function App() {
       </Canvas>
 
       {tracks.length > 0 && <ControlsPanel />}
+      {tracks.length > 0 && <ElevationProfile />}
       {tracks.length > 0 && <PlaybackControls />}
       {tracks.length > 0 && <SettingsPanel />}
       {tracks.length > 0 && <LiveStatsBar />}

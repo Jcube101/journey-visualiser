@@ -192,6 +192,7 @@ Gear icon button (top-right corner), opens a compact dark panel with toggles and
 | Leg labels | toggle | on | Billboard text at each leg's start point |
 | Ambient particles | toggle | on | ~200 faint drifting particles in scene volume |
 | Route glow | toggle | on | Thicker low-opacity duplicate line behind each route |
+| Elevation profile | toggle | on | 2D elevation chart above playback controls, click-to-scrub |
 | Live stats | toggle | on | Top-right panel showing elevation, speed, distance, driving time |
 | Day/night background | toggle | on | Background shifts by GPX timestamp: black (8pm–6am), dark navy (6am–8pm) |
 | Intro animation | toggle | on | Cinematic camera fly-in on page load (3s, plays once) |
@@ -219,6 +220,22 @@ Scene background colour transitions based on the current dot's GPX timestamp:
 - Night (8pm–6am): `#0a0a0f` (deep black)
 - Day (7am–7pm): `#0c1225` (very dark navy)
 - Smooth hermite transition during 6–7am and 7–8pm
+
+### Elevation Profile Chart
+
+Compact 2D area chart (80px tall, full width) positioned above playback controls at `bottom: 88px`:
+
+- X axis: cumulative distance (km) computed via haversine between consecutive points
+- Y axis: elevation (m) with global min/max across all legs
+- Filled area under the elevation curve with vertical gradient matching elevation colour mode (blue at bottom → white at peaks)
+- Elevation line on top using same gradient
+- Faint vertical lines at each leg boundary with leg name labels
+- White vertical indicator line + dot synced to `currentPointIndex`
+- Click anywhere to scrub playback to that distance
+- Hover shows tooltip: elevation (m), distance from start (km), speed (km/h)
+- Rendered via HTML Canvas 2D (no charting library) for performance — redraws on currentPointIndex change
+- Dark semi-transparent background (`bg-black/50 backdrop-blur-sm`) so 3D scene shows through
+- Axis labels: min/max elevation, total distance
 
 ### Live Stats Bar
 

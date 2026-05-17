@@ -36,7 +36,7 @@
 - [x] Colour mode toggle in settings panel (Leg / Speed / Elev)
 - [x] Drag-and-drop removed — manifest-only loading (cleaner UI for screen recordings)
 - [x] Intro camera animation — cinematic fly-in from top-down with route fade-in over 3s
-- [ ] Elevation profile chart — 2D graph synced to dot position
+- [x] Elevation profile chart — 2D area chart synced to dot position, click-to-scrub, hover tooltip
 - [ ] Speed graph alongside 3D view
 
 ## Phase 4 — View modes
@@ -55,3 +55,4 @@
 - [ ] Embed on job-joseph.com
 - [ ] Shareable URL state (which GPX, playback position, view mode)
 - [ ] Mobile responsiveness
+- [ ] Use OpenScreen (free, open-source Screen Studio alternative) for final social media clip recording — supports variable speed per segment, zoom, motion blur, no watermark. Download from github.com/siddharthvaddem/openscreen/releases

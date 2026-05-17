@@ -119,6 +119,7 @@ export const useJourneyStore = create((set, get) => ({
     routeGlow: true,
     liveStats: true,
     dayNightBg: true,
+    elevationProfile: true,
     introAnimation: true,
   },
 

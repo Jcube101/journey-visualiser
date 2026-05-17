@@ -32,12 +32,14 @@ src/
 │   │   ├── LegLabels.jsx         — billboard text at each leg's start point (always faces camera)
 │   │   ├── AmbientParticles.jsx  — 200 slowly drifting faint particles for depth
 │   │   ├── DayNightBackground.jsx — background colour shifts by GPX timestamp (black at night, dark navy by day)
+│   │   ├── IntroAnimation.jsx    — cinematic camera fly-in on load (3s, ease-in-out, route fade-in)
 │   │   └── CameraController.jsx  — (placeholder) per-view-mode camera logic
 │   └── ui/           # HTML overlay UI (Tailwind)
-│       ├── DropZone.jsx          — full-screen or corner drag-and-drop
 │       ├── ControlsPanel.jsx     — elevation slider + reset view button
 │       ├── SettingsPanel.jsx     — gear icon button → toggles/sliders panel for all visual features
 │       ├── LiveStatsBar.jsx      — live elevation, speed, distance, driving time as dot moves
+│       ├── GradientLegend.jsx    — gradient bar legend for speed/elevation colour modes
+│       ├── ElevationProfile.jsx  — 2D elevation chart synced to playback, click-to-scrub, hover tooltip
 │       ├── ViewModeSelector.jsx  — (placeholder)
 │       └── PlaybackControls.jsx  — play/pause, scrub, speed selector, driving time elapsed, leg indicator
 ├── hooks/
@@ -46,7 +48,8 @@ src/
 │   ├── gpxParser.js      — parse GPX XML → normalised point array + metadata
 │   ├── geoTransform.js   — GPS coords → scene space (with overrideBounds for multi-leg)
 │   ├── loadManifest.js   — fetch index.json, parse all legs, shared global bounds
-│   └── cameraDefaults.js — compute default camera position from scene bounds
+│   ├── cameraDefaults.js — compute default camera position from scene bounds
+│   └── colourMap.js      — speed/elevation gradient sampling + CSS gradient strings
 ├── stores/
 │   └── useJourneyStore.js — Zustand store (tracks, playback, view, elevation, settings, dotPosition/dotData)
 └── constants/
@@ -80,7 +83,7 @@ src/
   - `dotTrail` (true), `dotTrailWidth` (3)
   - `cameraFollow` (false)
   - `legLabels` (true), `ambientParticles` (true), `routeGlow` (true)
-  - `liveStats` (true), `dayNightBg` (true)
+  - `liveStats` (true), `dayNightBg` (true), `elevationProfile` (true)
 - City name billboard labels are deduplicated by proximity (DEDUP_RADIUS = 2 scene units) so a junction city like Dindigul only appears once despite being shared by multiple legs
 - Leg names in legend (top-left) and playback bar are driven entirely by the `leg` field in index.json — no hardcoding anywhere
 - Three colour modes (LEG/SPEED/ELEVATION) implemented in RouteTrail with per-point vertex colouring via Drei `<Line vertexColors>`; global normalisation across all legs for consistent colours
@@ -88,3 +91,4 @@ src/
 - GradientLegend component swaps between leg legend (colour dots) and gradient bar legend based on active mode
 - Intro animation: IntroAnimation component starts camera at 2.5x fitted distance looking top-down, eases to default position over 3s while route opacity fades 0→1 (imperatively via useFrame, no re-renders); plays once per page load, toggleable via `introAnimation` setting
 - DropZone component removed — app loads exclusively from manifest (`public/gpx/index.json`)
+- ElevationProfile is a Canvas 2D chart (not a charting library) — renders filled area with elevation gradient, leg boundary lines, playback indicator, click-to-scrub, hover tooltip; positioned above playback controls at `bottom-[88px]`
