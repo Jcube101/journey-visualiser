@@ -4,8 +4,10 @@ import { OrbitControls } from '@react-three/drei'
 import RouteTrail from './components/canvas/RouteTrail'
 import SeaPlane from './components/canvas/SeaPlane'
 import CameraFit from './components/canvas/CameraFit'
+import AnimatedDot from './components/canvas/AnimatedDot'
 import DropZone from './components/ui/DropZone'
 import ControlsPanel from './components/ui/ControlsPanel'
+import PlaybackControls from './components/ui/PlaybackControls'
 import { useJourneyStore } from './stores/useJourneyStore'
 import { loadManifest } from './utils/loadManifest'
 
@@ -30,6 +32,7 @@ export default function App() {
         <ambientLight intensity={0.4} />
         <directionalLight position={[50, 100, 50]} intensity={0.6} />
         <RouteTrail />
+        <AnimatedDot />
         <SeaPlane />
         {cameraTarget && <CameraFit sceneMetadata={cameraTarget} />}
         <OrbitControls makeDefault enableDamping dampingFactor={0.1} />
@@ -40,6 +43,7 @@ export default function App() {
 
       {!loading && <DropZone />}
       {tracks.length > 0 && <ControlsPanel />}
+      {tracks.length > 0 && <PlaybackControls />}
 
       {loading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center">

@@ -86,15 +86,21 @@ Orthographic camera looking straight down. Path coloured by speed or elevation a
 
 ## Animated Dot
 
-- Travels the route based on recorded timestamps
-- Configurable playback speed multiplier
-- Smooth interpolation between trackpoints
+- Glowing sphere (emissive material + transparent outer halo + point light)
+- Travels all legs continuously in timestamp order — seamless leg transitions
+- Position interpolated smoothly between adjacent points using accumulator pattern
+- Colour matches the active leg's palette colour, updates dynamically at transitions
+- Animation driven by `useFrame` — advances based on real GPX time gaps × playback speed
 
 ## Playback Controls
 
-- Play / Pause
-- Scrub (seek to any point on the timeline)
-- Speed multiplier (1x, 2x, 5x, 10x, etc.)
+- Play / Pause toggle
+- Scrubber bar (full journey progress across all legs combined)
+- Speed selector: 1x, 2x, 5x, 10x, 50x, 100x, 3600x
+- 3600x plays a 24-hour journey in 24 seconds (for screen recording / social clips)
+- Current timestamp display: "Day N — H:MM AM/PM" format
+- Leg indicator with colour dot and label
+- Positioned as bottom-centre dark bar with backdrop blur
 
 ## State (Zustand)
 

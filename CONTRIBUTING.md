@@ -54,6 +54,22 @@ File dropped onto DropZone
 3. Update the `RouteTrail` component's shader or material logic to map the new data dimension to vertex colours
 4. Add a toggle in the UI to switch between colour modes
 
+## Playback Architecture
+
+The animated dot and playback controls work together across the R3F/HTML boundary:
+
+```
+PlaybackControls (HTML overlay)
+  → play/pause/scrub/speed → Zustand store actions
+  → store.currentPointIndex updates
+
+AnimatedDot (inside Canvas)
+  → useFrame reads store.isPlaying, playbackSpeed, currentPointIndex
+  → Accumulator pattern: elapsed real ms × speed consumed against GPX time gaps
+  → All visible tracks combined into one timestamp-sorted array
+  → Dot interpolates smoothly between points, colour changes at leg boundaries
+```
+
 ## How to Add a New Control
 
 1. Add the state and action to `src/stores/useJourneyStore.js`

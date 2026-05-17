@@ -10,8 +10,8 @@
 - [x] Sea level reference plane with grid
 - [x] Dynamic camera default (azimuth 45°, polar 30°, auto-fitted distance)
 - [x] Reset view button
-- [ ] Animated dot travelling the route
-- [ ] Basic playback controls (play/pause, scrub)
+- [x] Animated dot travelling the route (glowing sphere with halo + point light)
+- [x] Playback controls (play/pause, scrub, speed: 1x–3600x, timestamp, leg indicator)
 
 ## Phase 2 — View modes and colour
 

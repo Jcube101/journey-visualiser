@@ -52,6 +52,8 @@ Drag `.gpx` files onto the viewport at any time. Each file is added as a standal
 - **Orbit** — click and drag to rotate, scroll to zoom
 - **Elevation slider** — exaggerate terrain height (1x–10x)
 - **Reset view** — snap back to the default cinematic camera angle
+- **Playback** — play/pause, scrub through the timeline, speed selector (1x–3600x)
+- **3600x speed** — plays a full 24-hour journey in 24 seconds for social media clips
 
 ## Hosting
 

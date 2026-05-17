@@ -24,13 +24,13 @@ src/
 │   │   ├── RouteTrail.jsx      — renders tracks as 3D lines, split by segment
 │   │   ├── SeaPlane.jsx        — semi-transparent navy reference plane at minY with grid
 │   │   ├── CameraFit.jsx       — auto-positions camera on load/reset
-│   │   ├── AnimatedDot.jsx     — (placeholder) animated dot along route
+│   │   ├── AnimatedDot.jsx     — glowing sphere that travels all legs in timestamp order
 │   │   └── CameraController.jsx — (placeholder) per-view-mode camera logic
 │   └── ui/           # HTML overlay UI (Tailwind)
 │       ├── DropZone.jsx        — full-screen or corner drag-and-drop
 │       ├── ControlsPanel.jsx   — elevation slider + reset view button
 │       ├── ViewModeSelector.jsx — (placeholder)
-│       └── PlaybackControls.jsx — (placeholder)
+│       └── PlaybackControls.jsx — play/pause, scrub, speed selector, timestamp, leg indicator
 ├── hooks/            # Custom React hooks
 ├── utils/
 │   ├── gpxParser.js      — parse GPX XML → normalised point array + metadata
@@ -62,3 +62,5 @@ src/
 - Reset view button triggers `cameraResetKey` in the store, which CameraFit listens to
 - GPX files in `public/gpx/` are gitignored — manifest is `public/gpx/index.json`
 - View mode and colour mode constants defined in `src/constants/`
+- AnimatedDot combines all visible tracks into one timestamp-sorted array and uses an accumulator pattern in useFrame to advance based on real GPX time gaps × playback speed
+- Playback is continuous across legs — dot transitions seamlessly when one leg ends and the next begins
