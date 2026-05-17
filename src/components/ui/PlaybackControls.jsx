@@ -12,6 +12,8 @@ export default function PlaybackControls() {
   const setPlaybackSpeed = useJourneyStore((s) => s.setPlaybackSpeed)
   const setCurrentPointIndex = useJourneyStore((s) => s.setCurrentPointIndex)
 
+  const showElevProfile = useJourneyStore((s) => s.settings.elevationProfile)
+
   const allPoints = usePlaybackPoints()
 
   if (allPoints.length === 0) return null
@@ -23,7 +25,7 @@ export default function PlaybackControls() {
   const legLabel = current?.label || '—'
 
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
+    <div className={`absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2 ${showElevProfile ? 'bottom-[92px]' : 'bottom-6'}`}>
       <div className="bg-black/70 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-3 flex items-center gap-4 min-w-[420px]">
         <button
           onClick={() => isPlaying ? pause() : play()}

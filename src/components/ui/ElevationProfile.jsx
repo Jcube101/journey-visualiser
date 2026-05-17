@@ -154,7 +154,7 @@ export default function ElevationProfile() {
       ctx.fillStyle = 'rgba(255,255,255,0.3)'
       ctx.font = '9px system-ui'
       ctx.textAlign = 'left'
-      ctx.fillText(b.label, bx + 3, PADDING_TOP - 3)
+      ctx.fillText(b.label, bx + 3, PADDING_TOP + 10)
     }
 
     // Axis labels
@@ -256,15 +256,15 @@ export default function ElevationProfile() {
 
   const handleMouseLeave = useCallback(() => setHover(null), [])
 
-  if (!show || allPoints.length === 0) return null
+  if (allPoints.length === 0) return null
 
   return (
     <div
       ref={containerRef}
-      className="absolute bottom-[88px] left-4 right-4 z-10"
+      className="absolute bottom-0 left-0 right-0 z-10"
       style={{ height: CHART_HEIGHT }}
     >
-      <div className="w-full h-full bg-black/50 backdrop-blur-sm rounded-lg border border-white/10 overflow-hidden">
+      <div className="w-full h-full bg-black/50 backdrop-blur-sm border-t border-white/10 overflow-hidden">
         <canvas
           ref={canvasRef}
           className="w-full cursor-crosshair"

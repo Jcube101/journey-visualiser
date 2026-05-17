@@ -27,6 +27,7 @@ export default function App() {
   const tracks = useJourneyStore((s) => s.tracks)
   const globalSceneMetadata = useJourneyStore((s) => s.globalSceneMetadata)
   const colourMode = useJourneyStore((s) => s.colourMode)
+  const settings = useJourneyStore((s) => s.settings)
   const loadLegs = useJourneyStore((s) => s.loadLegs)
   const [loading, setLoading] = useState(true)
 
@@ -63,7 +64,7 @@ export default function App() {
       </Canvas>
 
       {tracks.length > 0 && <ControlsPanel />}
-      {tracks.length > 0 && <ElevationProfile />}
+      {tracks.length > 0 && settings.elevationProfile && <ElevationProfile />}
       {tracks.length > 0 && <PlaybackControls />}
       {tracks.length > 0 && <SettingsPanel />}
       {tracks.length > 0 && <LiveStatsBar />}
