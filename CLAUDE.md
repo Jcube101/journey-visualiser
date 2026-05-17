@@ -83,3 +83,8 @@ src/
   - `liveStats` (true), `dayNightBg` (true)
 - City name billboard labels are deduplicated by proximity (DEDUP_RADIUS = 2 scene units) so a junction city like Dindigul only appears once despite being shared by multiple legs
 - Leg names in legend (top-left) and playback bar are driven entirely by the `leg` field in index.json — no hardcoding anywhere
+- Three colour modes (LEG/SPEED/ELEVATION) implemented in RouteTrail with per-point vertex colouring via Drei `<Line vertexColors>`; global normalisation across all legs for consistent colours
+- RouteGlow matches the active colour mode — same vertex colour array at wider lineWidth + lower opacity
+- GradientLegend component swaps between leg legend (colour dots) and gradient bar legend based on active mode
+- Intro animation: IntroAnimation component starts camera at 2.5x fitted distance looking top-down, eases to default position over 3s while route opacity fades 0→1 (imperatively via useFrame, no re-renders); plays once per page load, toggleable via `introAnimation` setting
+- DropZone component removed — app loads exclusively from manifest (`public/gpx/index.json`)

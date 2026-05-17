@@ -75,3 +75,21 @@ City labels on the 3D map are deduplicated by matching name AND proximity (withi
 ### Colour is sufficient to distinguish legs on the map
 
 Verbose labels like "Bengaluru → Dindigul" on the 3D map add clutter without adding clarity — the leg colours already distinguish segments, and the legend shows full names. Billboard labels should be minimal: just the city name at that point.
+
+## 2026-05-18 — Colour modes and intro animation
+
+### Per-point vertex colouring in R3F
+
+Drei's `<Line>` component accepts a `vertexColors` prop — an array of `[r, g, b]` tuples, one per point. This is fundamentally different from setting a single `color` on the material. The Line component internally sets the material colour to white and enables `vertexColors: true` on the geometry when this prop is present. The colour values must be linear (0–1 floats), not sRGB hex strings.
+
+### Global normalisation is essential for colour consistency
+
+Speed and elevation gradients must normalise against global min/max across all legs, not per-leg. Per-leg normalisation would make every leg's gradient span the full colour range regardless of actual values — a slow city leg and a fast highway leg would look identical. Global normalisation ensures that 40 km/h looks the same shade of green whether it's on leg 1 or leg 4.
+
+### Intro animation timing: after tracks load, not on mount
+
+The intro animation must only trigger after tracks are loaded and scene metadata is ready, not on component mount. Using a Zustand flag (`introDone`) to track whether the intro has played ensures it fires exactly once and doesn't conflict with CameraFit's initial positioning. CameraFit checks the flag and skips its first run when an intro is pending.
+
+### Imperative opacity animation avoids re-render storms
+
+Animating route opacity during the intro by subscribing to `introProgress` in RouteTrail would cause 180 React re-renders (60fps × 3s), each reconstructing all Line components. Instead, use `useFrame` to imperatively traverse the group's children and set `material.opacity` directly — zero re-renders, smooth animation.

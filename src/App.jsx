@@ -12,17 +12,20 @@ import LegLabels from './components/canvas/LegLabels'
 import AmbientParticles from './components/canvas/AmbientParticles'
 import RouteGlow from './components/canvas/RouteGlow'
 import DayNightBackground from './components/canvas/DayNightBackground'
-import DropZone from './components/ui/DropZone'
+import IntroAnimation from './components/canvas/IntroAnimation'
 import ControlsPanel from './components/ui/ControlsPanel'
 import PlaybackControls from './components/ui/PlaybackControls'
 import SettingsPanel from './components/ui/SettingsPanel'
 import LiveStatsBar from './components/ui/LiveStatsBar'
+import GradientLegend from './components/ui/GradientLegend'
 import { useJourneyStore } from './stores/useJourneyStore'
+import { COLOUR_MODES } from './constants/colourModes'
 import { loadManifest } from './utils/loadManifest'
 
 export default function App() {
   const tracks = useJourneyStore((s) => s.tracks)
   const globalSceneMetadata = useJourneyStore((s) => s.globalSceneMetadata)
+  const colourMode = useJourneyStore((s) => s.colourMode)
   const loadLegs = useJourneyStore((s) => s.loadLegs)
   const [loading, setLoading] = useState(true)
 
@@ -50,6 +53,7 @@ export default function App() {
         <AutoOrbit />
         <CameraFollow />
         <DayNightBackground />
+        {cameraTarget && <IntroAnimation sceneMetadata={cameraTarget} />}
         {cameraTarget && <CameraFit sceneMetadata={cameraTarget} />}
         <OrbitControls makeDefault enableDamping dampingFactor={0.1} />
         {tracks.length === 0 && !loading && (
@@ -57,7 +61,6 @@ export default function App() {
         )}
       </Canvas>
 
-      {!loading && <DropZone />}
       {tracks.length > 0 && <ControlsPanel />}
       {tracks.length > 0 && <PlaybackControls />}
       {tracks.length > 0 && <SettingsPanel />}
@@ -69,7 +72,7 @@ export default function App() {
         </div>
       )}
 
-      {tracks.length > 0 && (
+      {tracks.length > 0 && colourMode === COLOUR_MODES.LEG && (
         <div className="absolute top-4 left-4 text-white/60 text-xs space-y-1">
           {tracks.map((t) => (
             <div key={t.id} className="flex items-center gap-2">
@@ -85,6 +88,7 @@ export default function App() {
           ))}
         </div>
       )}
+      {tracks.length > 0 && <GradientLegend />}
     </div>
   )
 }

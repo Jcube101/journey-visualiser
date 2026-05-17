@@ -99,7 +99,7 @@ export const useJourneyStore = create((set, get) => ({
 
   // --- View ---
   viewMode: VIEW_MODES.FREE_ROTATE,
-  colourMode: COLOUR_MODES.SPEED,
+  colourMode: COLOUR_MODES.LEG,
   elevationExaggeration: 3.0,
   cameraResetKey: 0,
 
@@ -119,10 +119,19 @@ export const useJourneyStore = create((set, get) => ({
     routeGlow: true,
     liveStats: true,
     dayNightBg: true,
+    introAnimation: true,
   },
 
   setSetting: (key, value) =>
     set((s) => ({ settings: { ...s.settings, [key]: value } })),
+
+  // --- Intro animation ---
+  introPlaying: false,
+  introProgress: 0,
+  introDone: false,
+  startIntro: () => set({ introPlaying: true, introProgress: 0, introDone: false }),
+  finishIntro: () => set({ introPlaying: false, introProgress: 1, introDone: true }),
+  setIntroProgress: (p) => set({ introProgress: p }),
 
   // --- Dot position (updated by AnimatedDot for other components to read) ---
   dotPosition: null,

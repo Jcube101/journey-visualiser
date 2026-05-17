@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useJourneyStore } from '../../stores/useJourneyStore'
+import { COLOUR_MODES } from '../../constants/colourModes'
 
 export default function SettingsPanel() {
   const [open, setOpen] = useState(false)
@@ -7,6 +8,8 @@ export default function SettingsPanel() {
   const buttonRef = useRef()
   const settings = useJourneyStore((s) => s.settings)
   const setSetting = useJourneyStore((s) => s.setSetting)
+  const colourMode = useJourneyStore((s) => s.colourMode)
+  const setColourMode = useJourneyStore((s) => s.setColourMode)
 
   useEffect(() => {
     if (!open) return
@@ -40,6 +43,29 @@ export default function SettingsPanel() {
         >
           <div className="text-white/90 text-sm font-medium mb-2">Settings</div>
 
+          <div className="flex items-center justify-between">
+            <span>Route colour</span>
+            <div className="flex gap-1">
+              {[
+                { key: COLOUR_MODES.LEG, label: 'Leg' },
+                { key: COLOUR_MODES.SPEED, label: 'Speed' },
+                { key: COLOUR_MODES.ELEVATION, label: 'Elev' },
+              ].map((opt) => (
+                <button
+                  key={opt.key}
+                  onClick={() => setColourMode(opt.key)}
+                  className={`px-2 py-0.5 rounded text-[10px] transition-colors ${
+                    colourMode === opt.key
+                      ? 'bg-blue-500/70 text-white'
+                      : 'bg-white/10 text-white/50 hover:text-white/80'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <Toggle label="Auto-orbit" value={settings.autoOrbit} onChange={(v) => setSetting('autoOrbit', v)} />
           {settings.autoOrbit && (
             <Slider label="Orbit speed" value={settings.autoOrbitSpeed} min={0.01} max={0.2} step={0.01}
@@ -60,6 +86,7 @@ export default function SettingsPanel() {
           <Toggle label="Route glow" value={settings.routeGlow} onChange={(v) => setSetting('routeGlow', v)} />
           <Toggle label="Live stats" value={settings.liveStats} onChange={(v) => setSetting('liveStats', v)} />
           <Toggle label="Day/night background" value={settings.dayNightBg} onChange={(v) => setSetting('dayNightBg', v)} />
+          <Toggle label="Intro animation" value={settings.introAnimation} onChange={(v) => setSetting('introAnimation', v)} />
         </div>
       )}
     </>

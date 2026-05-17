@@ -29,13 +29,14 @@
 - [x] Live stats bar — elevation, speed, distance, driving time
 - [x] Settings panel — gear icon with toggles/sliders for all visual features
 
-## Phase 3 — Colour modes, charts, and intro (next)
+## Phase 3 — Colour modes, charts, and intro
 
-- [ ] Speed colour mode — single gradient ribbon (blue→green→yellow→red) replacing flat leg colours
-- [ ] Elevation colour mode — same gradient approach mapped to elevation
-- [ ] Colour mode toggle in settings panel
+- [x] Speed colour mode — single gradient ribbon (blue→cyan→green→yellow→red) with gradient legend
+- [x] Elevation colour mode — mountain gradient (deep blue→green→yellow-green→tan→white) with gradient legend
+- [x] Colour mode toggle in settings panel (Leg / Speed / Elev)
+- [x] Drag-and-drop removed — manifest-only loading (cleaner UI for screen recordings)
+- [x] Intro camera animation — cinematic fly-in from top-down with route fade-in over 3s
 - [ ] Elevation profile chart — 2D graph synced to dot position
-- [ ] Intro animation — slow dramatic camera fly-in on load
 - [ ] Speed graph alongside 3D view
 
 ## Phase 4 — View modes

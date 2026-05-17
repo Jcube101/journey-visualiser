@@ -66,6 +66,63 @@ The same position is used on initial load and when "Reset view" is clicked.
 - All legs share a global coordinate system so they stitch geographically
 - Manifest supports grouped files per leg (merged by timestamp)
 
+## Colour Modes
+
+Three modes, toggled via settings panel (Leg / Speed / Elev):
+
+### LEG (default)
+
+Each leg rendered with its assigned palette colour. Legend shows colour dots with leg names.
+
+### SPEED
+
+Per-point vertex colouring based on instantaneous speed, normalised against global max speed across all legs.
+
+| Speed range | Colour | Hex |
+|-------------|--------|-----|
+| 0–20 km/h (city/stops) | Blue | `#1a66ff` |
+| 20–40 km/h | Cyan | `#00d4ff` |
+| 40–70 km/h | Green | `#00ff88` |
+| 70–100 km/h | Yellow | `#ffee00` |
+| 100+ km/h | Red | `#ff3300` |
+
+Gradient stops at t=0, 0.2, 0.4, 0.7, 1.0. Legend shows gradient bar with "0 km/h → {maxSpeed} km/h".
+
+### ELEVATION
+
+Per-point vertex colouring based on elevation, normalised against global min/max elevation across all legs.
+
+| Elevation range | Colour | Hex |
+|-----------------|--------|-----|
+| Lowest (sea level) | Deep blue | `#1a3a6b` |
+| Low-mid (plains) | Green | `#2d8a4e` |
+| Mid | Yellow-green | `#8db834` |
+| High (plateau) | Tan | `#c4a35a` |
+| Peak (mountain) | White | `#f0eeea` |
+
+Gradient stops at t=0, 0.25, 0.5, 0.75, 1.0. Legend shows gradient bar with "{minEle} m → {maxEle} m".
+
+### Implementation
+
+- RouteTrail passes `vertexColors` array (per-point `[r, g, b]` tuples) to Drei `<Line>` when in SPEED or ELEVATION mode
+- RouteGlow uses the same vertex colours at `lineWidth: 5` / `opacity: 0.15`
+- Global stats (maxSpeed, minEle, maxEle) computed once via `useMemo` across all visible tracks
+- GradientLegend component renders CSS gradient bar with data-driven min/max labels; hidden in LEG mode
+
+## Intro Animation
+
+One-time cinematic camera fly-in on page load:
+
+- **Start:** Camera at 2.5× fitted distance, directly above scene centre, looking straight down
+- **End:** Default camera position (azimuth 45°, polar 30°, 1.2× bbox diagonal distance)
+- **Duration:** 3 seconds
+- **Easing:** Hermite ease-in-out (`t² × (3 - 2t)`)
+- **Route fade:** Route lines (RouteTrail + RouteGlow) fade from opacity 0 → 1 simultaneously via imperative `material.opacity` updates in `useFrame` (no React re-renders)
+- **Visible throughout:** Sea plane, ambient particles, grid — only routes fade in
+- **Controls:** OrbitControls disabled during intro, re-enabled after completion
+- **One-shot:** Tracked by `introDone` Zustand flag; Reset View does not replay the intro
+- **Toggleable:** `introAnimation` setting (default on) — when off, intro is skipped entirely
+
 ## View Modes
 
 ### 1. Free-rotate
@@ -137,6 +194,8 @@ Gear icon button (top-right corner), opens a compact dark panel with toggles and
 | Route glow | toggle | on | Thicker low-opacity duplicate line behind each route |
 | Live stats | toggle | on | Top-right panel showing elevation, speed, distance, driving time |
 | Day/night background | toggle | on | Background shifts by GPX timestamp: black (8pm–6am), dark navy (6am–8pm) |
+| Intro animation | toggle | on | Cinematic camera fly-in on page load (3s, plays once) |
+| Route colour | 3-way | Leg | LEG (palette), SPEED (gradient), ELEVATION (gradient) |
 
 ## Visual Features
 
@@ -174,7 +233,7 @@ Small panel (top-right, below settings gear) showing live values updated as dot 
 - `tracks` — array of loaded/parsed track data
 - `globalSceneMetadata` — combined scene bounds across all legs
 - `viewMode` — active view mode enum
-- `colourMode` — speed vs elevation colouring
+- `colourMode` — LEG, SPEED, or ELEVATION
 - `elevationExaggeration` — Y axis multiplier (1–10)
 - `isPlaying` — playback state
 - `playbackSpeed` — multiplier
@@ -184,3 +243,6 @@ Small panel (top-right, below settings gear) showing live values updated as dot 
 - `settings` — all visual feature toggles and slider values (see Settings Panel table)
 - `dotPosition` — {x, y, z} of animated dot's current interpolated position (updated each frame)
 - `dotData` — full point data at current index (ele, speed, time, drivingTimeMs, colour, etc.)
+- `introPlaying` — whether the intro animation is currently active
+- `introProgress` — 0→1 progress of the intro animation (read imperatively via getState, not subscribed)
+- `introDone` — whether the intro has completed (prevents replay on Reset View)
