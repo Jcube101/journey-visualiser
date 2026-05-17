@@ -36,7 +36,8 @@
 - [x] Colour mode toggle in settings panel (Leg / Speed / Elev)
 - [x] Drag-and-drop removed — manifest-only loading (cleaner UI for screen recordings)
 - [x] Intro camera animation — cinematic fly-in from top-down with route fade-in over 3s
-- [x] Elevation profile chart — 2D area chart synced to dot position, click-to-scrub, hover tooltip
+- [x] Elevation profile chart — full-width bottom panel (80px), gradient fill, leg boundary markers, click-to-scrub, hover tooltip, synced playback indicator
+- [x] Layout rework — screen edge → elevation chart → controls → 3D scene stacking; all bottom elements reposition correctly when elevation profile toggled off
 - [ ] Speed graph alongside 3D view
 
 ## Phase 4 — View modes

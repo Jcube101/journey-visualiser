@@ -93,3 +93,13 @@ The intro animation must only trigger after tracks are loaded and scene metadata
 ### Imperative opacity animation avoids re-render storms
 
 Animating route opacity during the intro by subscribing to `introProgress` in RouteTrail would cause 180 React re-renders (60fps × 3s), each reconstructing all Line components. Instead, use `useFrame` to imperatively traverse the group's children and set `material.opacity` directly — zero re-renders, smooth animation.
+
+## 2026-05-18 — Bottom layout and toggle behaviour
+
+### Conditional rendering over CSS hide for toggled panels
+
+Using `{flag && <Component />}` to unmount a toggled panel is better than hiding it with CSS (`display: none` or `opacity: 0`). CSS hide leaves the container in the DOM, which breaks layout calculations for sibling elements that position themselves relative to the hidden panel. When ElevationProfile was CSS-hidden but still mounted, PlaybackControls stayed at `bottom-[92px]` because it couldn't know the chart was visually gone. Conditional rendering removes the element entirely, and siblings can respond to its absence via a shared setting flag.
+
+### Shared offset constant for bottom panel stacking
+
+All bottom-positioned elements (PlaybackControls, ControlsPanel) need to agree on the chart height so they can offset above it. Rather than magic numbers scattered across files, both components read `settings.elevationProfile` and apply the same conditional: `bottom-[92px]` when chart is present (80px chart + 12px gap), default bottom offset when absent. A CSS variable or shared constant would be even cleaner for future additions to the bottom stack.

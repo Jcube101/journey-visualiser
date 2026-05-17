@@ -223,19 +223,36 @@ Scene background colour transitions based on the current dot's GPX timestamp:
 
 ### Elevation Profile Chart
 
-Compact 2D area chart (80px tall, full width) positioned above playback controls at `bottom: 88px`:
+Full-width 2D area chart (80px tall) pinned flush to the viewport bottom edge:
 
 - X axis: cumulative distance (km) computed via haversine between consecutive points
 - Y axis: elevation (m) with global min/max across all legs
-- Filled area under the elevation curve with vertical gradient matching elevation colour mode (blue at bottom → white at peaks)
+- Filled area under the elevation curve with vertical gradient matching elevation colour stops (blue at bottom → white at peaks)
 - Elevation line on top using same gradient
-- Faint vertical lines at each leg boundary with leg name labels
+- Faint vertical lines at each leg boundary with labels inside the chart area
 - White vertical indicator line + dot synced to `currentPointIndex`
 - Click anywhere to scrub playback to that distance
 - Hover shows tooltip: elevation (m), distance from start (km), speed (km/h)
 - Rendered via HTML Canvas 2D (no charting library) for performance — redraws on currentPointIndex change
-- Dark semi-transparent background (`bg-black/50 backdrop-blur-sm`) so 3D scene shows through
+- Dark semi-transparent background (`bg-black/50 backdrop-blur-sm`) with top border only
 - Axis labels: min/max elevation, total distance
+- Conditionally rendered (`settings.elevationProfile && <ElevationProfile />`) — fully unmounted when toggled off
+
+## Bottom Layout Stacking Order
+
+From viewport bottom edge upward:
+
+1. **Screen edge** (bottom: 0)
+2. **Elevation profile chart** — 80px tall, full width, flush to bottom
+3. **Controls row** (bottom: 92px = 80px chart + 12px gap):
+   - Left: ControlsPanel (elevation slider + reset view)
+   - Centre: PlaybackControls pill + driving time/leg indicator
+4. **3D scene** — full viewport height, chart overlays the bottom portion
+
+When elevation profile is toggled off:
+- ControlsPanel drops to `bottom-4`
+- PlaybackControls drops to `bottom-6`
+- No gap or ghost container remains
 
 ### Live Stats Bar
 
