@@ -132,7 +132,11 @@ export const useJourneyStore = create((set, get) => ({
 
   toggleCinemaMode: () =>
     set((s) => ({
-      settings: { ...s.settings, cinemaMode: !s.settings.cinemaMode },
+      settings: {
+        ...s.settings,
+        cinemaMode: !s.settings.cinemaMode,
+        verticalPreview: !s.settings.cinemaMode ? false : s.settings.verticalPreview,
+      },
     })),
 
   // --- Intro animation ---
