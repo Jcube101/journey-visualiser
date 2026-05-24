@@ -175,7 +175,7 @@ export default function App() {
         </div>
       )}
 
-      {vertical && <VerticalOverlay />}
+      {vertical && !cinema && <VerticalOverlay />}
     </div>
   )
 }
