@@ -93,7 +93,7 @@ function GlowSegments({ track, colourMode, maxSpeed, minEle, maxEle }) {
             key={`${track.id}-glow-${i}`}
             points={positions}
             vertexColors={vertexColors}
-            lineWidth={5}
+            lineWidth={glowWidth}
             transparent
             opacity={BASE_OPACITY}
           />

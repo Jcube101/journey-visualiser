@@ -118,13 +118,22 @@ export const useJourneyStore = create((set, get) => ({
     ambientParticles: true,
     routeGlow: true,
     liveStats: true,
-    dayNightBg: true,
-    elevationProfile: true,
+    dayNightBg: false,
+    elevationProfile: false,
     introAnimation: true,
+    cinemaMode: false,
+    verticalPreview: false,
+    cinemaTitle: false,
+    titleCard: false,
   },
 
   setSetting: (key, value) =>
     set((s) => ({ settings: { ...s.settings, [key]: value } })),
+
+  toggleCinemaMode: () =>
+    set((s) => ({
+      settings: { ...s.settings, cinemaMode: !s.settings.cinemaMode },
+    })),
 
   // --- Intro animation ---
   introPlaying: false,

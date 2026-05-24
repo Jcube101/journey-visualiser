@@ -1,8 +1,3 @@
-/**
- * Compute the default camera position for a given scene bounding box.
- * Azimuth 45° (diagonal), polar 30° above horizontal.
- * Distance derived from bounding box diagonal so the full route fits in frame.
- */
 export function getDefaultCameraPosition(sceneBounds) {
   const { minX, maxX, minY, maxY, minZ, maxZ } = sceneBounds
 

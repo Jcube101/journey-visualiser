@@ -10,6 +10,12 @@ export default function SettingsPanel() {
   const setSetting = useJourneyStore((s) => s.setSetting)
   const colourMode = useJourneyStore((s) => s.colourMode)
   const setColourMode = useJourneyStore((s) => s.setColourMode)
+  const isPlaying = useJourneyStore((s) => s.isPlaying)
+  const cinemaMode = useJourneyStore((s) => s.settings.cinemaMode)
+
+  useEffect(() => {
+    if (isPlaying) setOpen(false)
+  }, [isPlaying])
 
   useEffect(() => {
     if (!open) return
@@ -24,6 +30,8 @@ export default function SettingsPanel() {
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
   }, [open])
+
+  if (cinemaMode) return null
 
   return (
     <>
@@ -88,6 +96,14 @@ export default function SettingsPanel() {
           <Toggle label="Live stats" value={settings.liveStats} onChange={(v) => setSetting('liveStats', v)} />
           <Toggle label="Day/night background" value={settings.dayNightBg} onChange={(v) => setSetting('dayNightBg', v)} />
           <Toggle label="Intro animation" value={settings.introAnimation} onChange={(v) => setSetting('introAnimation', v)} />
+
+          <div className="border-t border-white/10 pt-2 mt-1">
+            <div className="text-white/90 text-sm font-medium mb-2">Recording</div>
+            <Toggle label="Cinema mode (C)" value={settings.cinemaMode} onChange={(v) => setSetting('cinemaMode', v)} />
+            <Toggle label="Vertical 9:16 preview" value={settings.verticalPreview} onChange={(v) => setSetting('verticalPreview', v)} />
+            <Toggle label="Title in cinema mode" value={settings.cinemaTitle} onChange={(v) => setSetting('cinemaTitle', v)} />
+            <Toggle label="Title card on play" value={settings.titleCard} onChange={(v) => setSetting('titleCard', v)} />
+          </div>
         </div>
       )}
     </>

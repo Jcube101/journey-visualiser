@@ -87,7 +87,7 @@ function TrackSegments({ track, colourMode, maxSpeed, minEle, maxEle }) {
             key={`${track.id}-seg-${i}`}
             points={positions}
             vertexColors={vertexColors}
-            lineWidth={2}
+            lineWidth={lineWidth}
           />
         )
       })}

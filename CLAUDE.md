@@ -40,6 +40,7 @@ src/
 │       ├── LiveStatsBar.jsx      — live elevation, speed, distance, driving time as dot moves
 │       ├── GradientLegend.jsx    — gradient bar legend for speed/elevation colour modes
 │       ├── ElevationProfile.jsx  — 2D elevation chart synced to playback, click-to-scrub, hover tooltip
+│       ├── TitleCard.jsx          — fade-in/out journey title + distance at playback start (cinema mode)
 │       ├── ViewModeSelector.jsx  — (placeholder)
 │       └── PlaybackControls.jsx  — play/pause, scrub, speed selector, driving time elapsed, leg indicator
 ├── hooks/
@@ -83,7 +84,8 @@ src/
   - `dotTrail` (true), `dotTrailWidth` (3)
   - `cameraFollow` (false)
   - `legLabels` (true), `ambientParticles` (true), `routeGlow` (true)
-  - `liveStats` (true), `dayNightBg` (true), `elevationProfile` (true)
+  - `liveStats` (true), `dayNightBg` (false), `elevationProfile` (false)
+  - `cinemaMode` (false), `verticalPreview` (false), `cinemaTitle` (false), `titleCard` (false)
 - City name billboard labels are deduplicated by proximity (DEDUP_RADIUS = 2 scene units) so a junction city like Dindigul only appears once despite being shared by multiple legs
 - Leg names in legend (top-left) and playback bar are driven entirely by the `leg` field in index.json — no hardcoding anywhere
 - Three colour modes (LEG/SPEED/ELEVATION) implemented in RouteTrail with per-point vertex colouring via Drei `<Line vertexColors>`; global normalisation across all legs for consistent colours
@@ -93,3 +95,10 @@ src/
 - DropZone component removed — app loads exclusively from manifest (`public/gpx/index.json`)
 - ElevationProfile (`src/components/ui/ElevationProfile.jsx`) — full-width bottom panel (80px), Canvas 2D area chart with elevation gradient fill, leg boundary markers inside the chart, playback indicator, click-to-scrub, hover tooltip; pinned flush to viewport bottom (`bottom-0 left-0 right-0`)
 - Bottom layout uses conditional bottom offsets: PlaybackControls and ControlsPanel read `settings.elevationProfile` and switch between `bottom-[92px]` (chart visible, 80px chart + 12px gap) and `bottom-6`/`bottom-4` (chart hidden). ElevationProfile is conditionally rendered in App.jsx (`settings.elevationProfile && <ElevationProfile />`) — not CSS hidden — so layout calculations work correctly when toggled off
+- Cinema mode (`C` key) hides all UI overlays (controls, stats, legend, settings, elevation profile) and 3D leg labels, leaving only the route + animated dot visible. `cinemaTitle` setting keeps a subtle journey title visible in cinema mode
+- Vertical preview overlay (phone icon button) draws a centred 9:16 rectangle with darkened surround (60% black), white border, and faint safe zone guides (caption zone bottom 15%, buttons zone right 10%). Used to frame the OpenScreen recording region, then turned off before recording — the scene is not constrained, only visually guided
+- Recording guide at `docs/RECORDING_GUIDE.md` documents the full OpenScreen workflow for Instagram Reels
+- TitleCard (`src/components/ui/TitleCard.jsx`) — fades in journey title + total distance for 2.5s at playback start when both `cinemaMode` and `titleCard` settings are on
+- Auto-play sequence (`R` key): resets playback → 1s pause → enables cinema mode → plays. Buttons for C/vertical/R appear next to the gear icon
+- Settings panel auto-closes when playback starts; cinema mode hides the settings panel entirely
+- AnimatedDot forces white colour when `colourMode` is SPEED for contrast against gradient ribbon

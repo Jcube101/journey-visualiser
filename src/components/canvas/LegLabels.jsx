@@ -15,6 +15,7 @@ function extractOriginCity(label) {
 export default function LegLabels() {
   const tracks = useJourneyStore((s) => s.tracks)
   const legLabels = useJourneyStore((s) => s.settings.legLabels)
+  const cinemaMode = useJourneyStore((s) => s.settings.cinemaMode)
 
   const labels = useMemo(() => {
     const visible = tracks.filter((t) => t.visible && t.scenePoints.length > 0)
@@ -41,7 +42,7 @@ export default function LegLabels() {
     return deduped
   }, [tracks])
 
-  if (!legLabels) return null
+  if (!legLabels || cinemaMode) return null
 
   return (
     <>

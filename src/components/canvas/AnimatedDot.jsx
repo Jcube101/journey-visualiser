@@ -2,6 +2,7 @@ import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useJourneyStore } from '../../stores/useJourneyStore'
 import { usePlaybackPoints } from '../../hooks/usePlaybackPoints'
+import { COLOUR_MODES } from '../../constants/colourModes'
 
 export default function AnimatedDot() {
   const meshRef = useRef()
@@ -76,7 +77,8 @@ export default function AnimatedDot() {
       dotData: pt,
     })
 
-    const colour = pt.colour || '#ffffff'
+    const colourMode = useJourneyStore.getState().colourMode
+    const colour = colourMode === COLOUR_MODES.SPEED ? '#ffffff' : (pt.colour || '#ffffff')
     if (meshRef.current.children[0]?.material) {
       meshRef.current.children[0].material.color.set(colour)
       meshRef.current.children[0].material.emissive.set(colour)
