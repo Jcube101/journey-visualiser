@@ -9,7 +9,7 @@ const _camPos = new THREE.Vector3()
 const _lookTarget = new THREE.Vector3()
 const _dir = new THREE.Vector3()
 
-function getIsometricCamera(sceneBounds) {
+function getIsometricCamera(sceneBounds, azimuthDeg = 45, polarDeg = 45) {
   const { minX, maxX, minY, maxY, minZ, maxZ } = sceneBounds
   const cx = (minX + maxX) / 2
   const cy = (minY + maxY) / 2
@@ -18,8 +18,8 @@ function getIsometricCamera(sceneBounds) {
     (maxX - minX) ** 2 + (maxY - minY) ** 2 + (maxZ - minZ) ** 2
   )
   const distance = diagonal * 1.2
-  const azimuth = (45 * Math.PI) / 180
-  const polar = (45 * Math.PI) / 180
+  const azimuth = (azimuthDeg * Math.PI) / 180
+  const polar = (polarDeg * Math.PI) / 180
   const horizontal = distance * Math.cos(polar)
 
   return {
@@ -50,6 +50,9 @@ export default function CameraController({ sceneMetadata }) {
   const { camera, controls, gl } = useThree()
   const viewMode = useJourneyStore((s) => s.viewMode)
   const cameraResetKey = useJourneyStore((s) => s.cameraResetKey)
+  const isoAzimuth = useJourneyStore((s) => s.settings.isoAzimuth)
+  const isoPolar = useJourneyStore((s) => s.settings.isoPolar)
+  const cameraFollow = useJourneyStore((s) => s.settings.cameraFollow)
   const fpvLookTarget = useRef(new THREE.Vector3())
   const fpvInitialized = useRef(false)
   const savedPerspective = useRef(null)
@@ -107,7 +110,7 @@ export default function CameraController({ sceneMetadata }) {
         controls.update()
       }
     } else if (viewMode === VIEW_MODES.ISOMETRIC) {
-      const { position, target } = getIsometricCamera(sb)
+      const { position, target } = getIsometricCamera(sb, isoAzimuth, isoPolar)
       camera.position.set(...position)
       camera.lookAt(...target)
       camera.updateProjectionMatrix()
@@ -140,7 +143,7 @@ export default function CameraController({ sceneMetadata }) {
         controls.update()
       }
     }
-  }, [viewMode, cameraResetKey, sceneMetadata, camera, controls, gl])
+  }, [viewMode, cameraResetKey, sceneMetadata, camera, controls, gl, isoAzimuth, isoPolar])
 
   // FPV per-frame update
   useFrame(() => {
@@ -175,13 +178,16 @@ export default function CameraController({ sceneMetadata }) {
       dotPos.z + _dir.z * 8
     )
 
+    const fpvSmoothness = useJourneyStore.getState().settings.fpvSmoothness
+    const lerpFactor = cameraFollow ? fpvSmoothness : 0.08
+
     if (!fpvInitialized.current) {
       camera.position.copy(_camPos)
       fpvLookTarget.current.copy(_lookTarget)
       fpvInitialized.current = true
     } else {
-      camera.position.lerp(_camPos, 0.05)
-      fpvLookTarget.current.lerp(_lookTarget, 0.05)
+      camera.position.lerp(_camPos, lerpFactor)
+      fpvLookTarget.current.lerp(_lookTarget, lerpFactor)
     }
 
     camera.lookAt(fpvLookTarget.current)

@@ -26,7 +26,7 @@ export default function PlaybackControls() {
   const legLabel = current?.label || '—'
 
   return (
-    <div className={`absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2`} style={{ bottom: showElevProfile && showSpeedGraph ? 152 : showElevProfile ? 92 : 24 }}>
+    <div className={`absolute left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2`} style={{ bottom: (showElevProfile && showSpeedGraph ? 152 : showElevProfile ? 92 : showSpeedGraph ? 72 : 24) }}>
       <div className="bg-black/70 backdrop-blur-sm border border-white/10 rounded-lg px-4 py-3 flex items-center gap-4 min-w-[420px]">
         <button
           onClick={() => isPlaying ? pause() : play()}

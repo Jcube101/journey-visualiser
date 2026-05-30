@@ -107,7 +107,7 @@ export default function App() {
       {!cinema && hasTracks && <ViewModeSelector />}
       {!cinema && hasTracks && <ControlsPanel />}
       {!cinema && hasTracks && settings.elevationProfile && <ElevationProfile />}
-      {!cinema && hasTracks && settings.speedGraph && settings.elevationProfile && <SpeedGraph />}
+      {!cinema && hasTracks && settings.speedGraph && <SpeedGraph />}
       {!cinema && hasTracks && <PlaybackControls />}
       {hasTracks && <SettingsPanel />}
       {!cinema && hasTracks && <LiveStatsBar />}

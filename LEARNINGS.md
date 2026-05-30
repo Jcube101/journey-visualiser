@@ -139,3 +139,17 @@ Top-down view requires an orthographic frustum sized from scene bounds (`Math.ma
 ### Speed graph and elevation profile share patterns
 
 Both charts use identical click-to-scrub, hover tooltip, resize observer, and playback indicator logic. Currently duplicated. If they diverge further or a third chart is added, extract the shared Canvas 2D chart scaffolding (resize, draw loop, indexFromX, hover state) into a shared hook.
+
+## 2026-05-30 — FPV smoothness, chart toggles, and dot colour
+
+### FPV smoothness is highly subjective and road-dependent
+
+A configurable lerp slider is far better than a hardcoded value. 0.0004 is the sweet spot for winding mountain roads like the Kodaikanal ghats — the camera glides through hairpins with a cinematic float. Tighter values (0.02–0.05) work better on straight highways where you want the camera to respond more immediately. The range 0.0002–0.05 covers everything from extremely floaty to near-instant tracking.
+
+### Bottom offset stacking needs a single computed value
+
+Bottom offset stacking for multiple optional charts needs a single computed value derived from which combination of charts is active — not per-chart assumptions about what else is visible. The original speed graph toggle only worked when elevation profile was also on because the render condition and bottom position both assumed the elevation chart was present. The fix: each chart mounts/unmounts independently, and the bottom offset is computed from the full 4-state matrix (none/elev/speed/both = 0/80/60/152px).
+
+### Dot colour in Route mode requires cached global ranges
+
+When the dot colour matches the speed or elevation gradient in real time, it needs global min/max values to normalise against. Computing these by iterating all raw points every frame is wasteful — the values don't change during playback. Cache them with `useMemo` keyed on the tracks array. The per-frame work reduces to a single `speedToColor` or `elevationToColor` call.

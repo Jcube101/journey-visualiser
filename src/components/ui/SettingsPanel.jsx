@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useJourneyStore } from '../../stores/useJourneyStore'
 import { COLOUR_MODES } from '../../constants/colourModes'
+import { VIEW_MODES } from '../../constants/viewModes'
 
 export default function SettingsPanel() {
   const [open, setOpen] = useState(false)
@@ -10,6 +11,7 @@ export default function SettingsPanel() {
   const setSetting = useJourneyStore((s) => s.setSetting)
   const colourMode = useJourneyStore((s) => s.colourMode)
   const setColourMode = useJourneyStore((s) => s.setColourMode)
+  const viewMode = useJourneyStore((s) => s.viewMode)
   const isPlaying = useJourneyStore((s) => s.isPlaying)
   const cinemaMode = useJourneyStore((s) => s.settings.cinemaMode)
 
@@ -74,6 +76,31 @@ export default function SettingsPanel() {
             </div>
           </div>
 
+          {(colourMode === COLOUR_MODES.SPEED || colourMode === COLOUR_MODES.ELEVATION) && (
+            <div className="flex items-center justify-between">
+              <span>Dot colour</span>
+              <div className="flex gap-1">
+                {[
+                  { key: 'leg', label: 'Leg' },
+                  { key: 'route', label: 'Route' },
+                  { key: 'white', label: 'White' },
+                ].map((opt) => (
+                  <button
+                    key={opt.key}
+                    onClick={() => setSetting('dotColourMode', opt.key)}
+                    className={`px-2 py-0.5 rounded text-[10px] transition-colors ${
+                      settings.dotColourMode === opt.key
+                        ? 'bg-blue-500/70 text-white'
+                        : 'bg-white/10 text-white/50 hover:text-white/80'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <Toggle label="Auto-orbit" value={settings.autoOrbit} onChange={(v) => setSetting('autoOrbit', v)} />
           {settings.autoOrbit && (
             <Slider label="Orbit speed" value={settings.autoOrbitSpeed} min={0.01} max={0.2} step={0.01}
@@ -88,7 +115,22 @@ export default function SettingsPanel() {
               onChange={(v) => setSetting('dotTrailWidth', v)} />
           )}
 
-          <Toggle label="Camera follow" value={settings.cameraFollow} onChange={(v) => setSetting('cameraFollow', v)} />
+          <Toggle label={viewMode === VIEW_MODES.FIRST_PERSON ? 'Smooth FPV' : 'Camera follow'} value={settings.cameraFollow} onChange={(v) => setSetting('cameraFollow', v)} />
+          {viewMode === VIEW_MODES.FIRST_PERSON && settings.cameraFollow && (
+            <Slider label="FPV Smoothness" value={settings.fpvSmoothness} min={0.0002} max={0.05} step={0.0002}
+              display={(v) => v <= 0.002 ? 'Floaty' : v <= 0.015 ? 'Smooth' : 'Tight'}
+              onChange={(v) => setSetting('fpvSmoothness', v)} />
+          )}
+          {viewMode === VIEW_MODES.ISOMETRIC && (
+            <>
+              <Slider label="Iso Azimuth" value={settings.isoAzimuth} min={0} max={360} step={5}
+                display={(v) => `${v}°`}
+                onChange={(v) => setSetting('isoAzimuth', v)} />
+              <Slider label="Iso Angle" value={settings.isoPolar} min={15} max={75} step={5}
+                display={(v) => `${v}°`}
+                onChange={(v) => setSetting('isoPolar', v)} />
+            </>
+          )}
           <Toggle label="Leg labels" value={settings.legLabels} onChange={(v) => setSetting('legLabels', v)} />
           <Toggle label="Ambient particles" value={settings.ambientParticles} onChange={(v) => setSetting('ambientParticles', v)} />
           <Toggle label="Route glow" value={settings.routeGlow} onChange={(v) => setSetting('routeGlow', v)} />

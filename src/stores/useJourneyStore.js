@@ -104,7 +104,13 @@ export const useJourneyStore = create((set, get) => ({
   cameraResetKey: 0,
 
   setViewMode: (mode) => set({ viewMode: mode }),
-  setColourMode: (mode) => set({ colourMode: mode }),
+  setColourMode: (mode) => set((s) => ({
+    colourMode: mode,
+    settings: {
+      ...s.settings,
+      dotColourMode: mode === COLOUR_MODES.LEG ? 'leg' : 'route',
+    },
+  })),
   resetCamera: () => set((s) => ({ cameraResetKey: s.cameraResetKey + 1 })),
 
   // --- Settings ---
@@ -122,6 +128,10 @@ export const useJourneyStore = create((set, get) => ({
     elevationProfile: false,
     introAnimation: false,
     speedGraph: false,
+    fpvSmoothness: 0.0004,
+    isoAzimuth: 45,
+    isoPolar: 45,
+    dotColourMode: 'route',
     cinemaMode: false,
     verticalPreview: false,
     cinemaTitle: false,

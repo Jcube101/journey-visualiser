@@ -54,6 +54,10 @@
 - [x] First-person fly-through — camera 12 units behind, 5 above the dot, lerp interpolation on both position and lookAt target, cinematic through hairpins, auto-orbit and camera follow disabled
 - [x] Top-down — orthographic camera straight down, fitted to scene bounds, route appears flat (expected), rotation and zoom disabled, pan allowed, auto-orbit disabled
 - [x] Reset view respects active mode — resets to that mode's default camera, not always free-rotate
+- [x] Speed graph independent toggle — correct 4-state bottom offsets (none/elevation/speed/both = 0/80/60/152px)
+- [x] Isometric adjustable angles — Iso Azimuth (0°–360°) and Iso Angle (15°–75°) sliders, real-time camera update, Reset View respects slider values
+- [x] FPV smoothing tied to camera follow toggle — lerp 0.0004 smooth / 0.08 tight, FPV Smoothness slider (0.0002–0.05)
+- [x] Dot colour mode selector — Leg/Route/White, auto-defaults by colour mode, point light matches in Route mode
 
 ## Phase 5 — Dashcam integration
 

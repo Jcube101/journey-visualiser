@@ -86,13 +86,17 @@ src/
   - `legLabels` (true), `ambientParticles` (true), `routeGlow` (false)
   - `liveStats` (true), `dayNightBg` (false), `elevationProfile` (false)
   - `speedGraph` (false), `introAnimation` (false)
+  - `fpvSmoothness` (0.0004), `isoAzimuth` (45), `isoPolar` (45)
+  - `dotColourMode` ('route') — auto-set to 'leg' when colourMode is LEG, 'route' when SPEED/ELEVATION
   - `cinemaMode` (false), `verticalPreview` (false), `cinemaTitle` (false), `titleCard` (false)
 - Default colour mode is ELEVATION, default playback speed is 3600x, default elevation exaggeration is 6x
 - View mode selector pill at top-centre (Free · Iso · FPV · Top), wired to VIEW_MODES constants and Zustand store, hidden in cinema mode. Switching mode resets camera; Reset View respects active mode
 - CameraController (`src/components/canvas/CameraController.jsx`) manages all four view modes: sets camera position/type on mode switch, runs FPV per-frame updates via useFrame. CameraFit only applies in FREE_ROTATE mode. AutoOrbit and CameraFollow only active in FREE_ROTATE mode
-- FPV uses lerp on both camera position and lookAt target independently (factor 0.05) — no snapping. Camera 12 units behind dot, 5 above, looks 8 units ahead along travel direction
-- SpeedGraph (`src/components/ui/SpeedGraph.jsx`) — 60px tall, same layout as ElevationProfile, speed-gradient coloured fill per segment, playback indicator, click-to-scrub. Sits directly above elevation profile at `bottom: 80px`
-- Bottom layout stacking: elevation only = controls at 92px; both charts = controls at 152px (80px elevation + 60px speed + 12px gap)
+- FPV lerp factor is configurable via FPV Smoothness slider (0.0002–0.05, default 0.0004) — lower = smoother/floatier, higher = tighter/accurate. Camera follow toggle label changes to "Smooth FPV" in FPV mode. When smooth off, uses tight lerp (0.08)
+- Iso mode exposes Azimuth (0°–360°) and Angle (15°–75°) sliders in settings panel, hidden in other modes. Camera updates in real time as sliders move
+- SpeedGraph (`src/components/ui/SpeedGraph.jsx`) — 60px tall, same layout as ElevationProfile, speed-gradient coloured fill per segment, playback indicator, click-to-scrub. Positions at bottom:0 when elevation off, bottom:80 when elevation on — each chart mounts/unmounts independently
+- Bottom layout stacking: four states — none = 16/24px, elevation only = 92px, speed only = 72px, both = 152px
+- Dot colour selector (Leg/Route/White) appears only in Speed/Elevation colour modes, hidden in Leg mode. Route mode matches dot + point light to the gradient value at the current point. Global min/max ranges for dot colour cached via useMemo
 - City name billboard labels are deduplicated by proximity (DEDUP_RADIUS = 2 scene units) so a junction city like Dindigul only appears once despite being shared by multiple legs
 - Leg names in legend (top-left) and playback bar are driven entirely by the `leg` field in index.json — no hardcoding anywhere
 - Three colour modes (LEG/SPEED/ELEVATION) implemented in RouteTrail with per-point vertex colouring via Drei `<Line vertexColors>`; global normalisation across all legs for consistent colours

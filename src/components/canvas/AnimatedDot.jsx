@@ -1,8 +1,9 @@
-import { useRef } from 'react'
+import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { useJourneyStore } from '../../stores/useJourneyStore'
 import { usePlaybackPoints } from '../../hooks/usePlaybackPoints'
 import { COLOUR_MODES } from '../../constants/colourModes'
+import { speedToColor, elevationToColor } from '../../utils/colourMap'
 
 export default function AnimatedDot() {
   const meshRef = useRef()
@@ -11,8 +12,19 @@ export default function AnimatedDot() {
 
   const isPlaying = useJourneyStore((s) => s.isPlaying)
   const currentPointIndex = useJourneyStore((s) => s.currentPointIndex)
+  const tracks = useJourneyStore((s) => s.tracks)
 
   const allPoints = usePlaybackPoints()
+
+  const globalRanges = useMemo(() => {
+    let maxSpeed = 0, minEle = Infinity, maxEle = -Infinity
+    for (const t of tracks) for (const p of t.rawPoints) {
+      if (p.speed > maxSpeed) maxSpeed = p.speed
+      if (p.ele < minEle) minEle = p.ele
+      if (p.ele > maxEle) maxEle = p.ele
+    }
+    return { maxSpeed, minEle, maxEle }
+  }, [tracks])
 
   useFrame((_, delta) => {
     if (allPoints.length < 2) return
@@ -77,8 +89,25 @@ export default function AnimatedDot() {
       dotData: pt,
     })
 
-    const colourMode = useJourneyStore.getState().colourMode
-    const colour = colourMode === COLOUR_MODES.SPEED ? '#ffffff' : (pt.colour || '#ffffff')
+    const state = useJourneyStore.getState()
+    const colourMode = state.colourMode
+    const dotColourMode = state.settings.dotColourMode
+
+    let colour = '#ffffff'
+    if (dotColourMode === 'white') {
+      colour = '#ffffff'
+    } else if (dotColourMode === 'route' && (colourMode === COLOUR_MODES.SPEED || colourMode === COLOUR_MODES.ELEVATION)) {
+      if (colourMode === COLOUR_MODES.SPEED && pt.speed != null) {
+        const [r, g, b] = speedToColor(pt.speed, globalRanges.maxSpeed)
+        colour = `rgb(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)})`
+      } else if (colourMode === COLOUR_MODES.ELEVATION && pt.ele != null) {
+        const [r, g, b] = elevationToColor(pt.ele, globalRanges.minEle, globalRanges.maxEle)
+        colour = `rgb(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)})`
+      }
+    } else {
+      colour = pt.colour || '#ffffff'
+    }
+
     if (meshRef.current.children[0]?.material) {
       meshRef.current.children[0].material.color.set(colour)
       meshRef.current.children[0].material.emissive.set(colour)

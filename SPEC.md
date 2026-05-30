@@ -137,7 +137,9 @@ Full OrbitControls — draggable, zoomable, rotatable. Path rendered as a 3D rib
 
 ### 2. Isometric
 
-- Fixed camera at azimuth 45°, polar 45°, distance fitted to scene bounds (diagonal × 1.2)
+- Camera at configurable azimuth (0°–360°, default 45°) and polar angle (15°–75°, default 45°), distance fitted to scene bounds (diagonal × 1.2)
+- Iso Azimuth and Iso Angle sliders appear in settings panel when Iso mode is active, hidden in other modes
+- Camera updates in real time as sliders move; Reset View respects the current slider values
 - OrbitControls: rotation disabled, zoom disabled, pan allowed
 - Auto-orbit disabled regardless of setting
 
@@ -146,7 +148,10 @@ Full OrbitControls — draggable, zoomable, rotatable. Path rendered as a 3D rib
 - Camera positioned 12 units behind and 5 units above the animated dot
 - Looks forward 8 units along the direction of travel
 - Direction computed from current point to 5 points ahead (`lookAhead = idx + 5`)
-- Smooth interpolation via `lerp(factor=0.05)` on both `camera.position` and `lookAt` target independently — no snapping
+- Two smoothing modes controlled by the Camera follow / Smooth FPV toggle:
+  - **Smooth (on):** lerp factor configurable via FPV Smoothness slider (0.0002–0.05, default 0.0004) — floaty cinematic feel, ideal for winding mountain roads
+  - **Tight (off):** lerp factor 0.08 — responsive, follows every bend closely
+- Lerp applied independently to both `camera.position` and `lookAt` target — no snapping
 - Falls back to reverse direction (from previous point) when direction vector is near-zero
 - OrbitControls fully disabled (no rotate, zoom, or pan)
 - When playback is paused, camera holds its last position
@@ -167,7 +172,14 @@ Full OrbitControls — draggable, zoomable, rotatable. Path rendered as a 3D rib
 - Glowing sphere (emissive material + transparent outer halo + point light)
 - Travels all legs continuously in driving-time order — seamless leg transitions
 - Position interpolated smoothly between adjacent points using accumulator pattern
-- Colour matches the active leg's palette colour, updates dynamically at transitions
+- Colour determined by the `dotColourMode` setting:
+  - **Leg** — matches the active leg's palette colour, updates dynamically at transitions
+  - **Route** — matches the speed or elevation gradient value at the current point in real time (default when colour mode is Speed or Elevation)
+  - **White** — always white, high contrast against any gradient
+- Point light colour also matches when Route mode is selected
+- Dot colour selector (Leg/Route/White) appears in settings panel only when colour mode is Speed or Elevation; hidden in Leg mode
+- Switching colour mode auto-sets dotColourMode: LEG → 'leg', SPEED/ELEVATION → 'route'
+- Global min/max ranges (maxSpeed, minEle, maxEle) for Route mode cached via `useMemo` keyed on tracks
 - Animation driven by `useFrame` — advances based on cumulative driving-time gaps × playback speed
 - Publishes `dotPosition` ({x, y, z}) and `dotData` (full point data) to Zustand store each frame
 
@@ -209,7 +221,10 @@ Gear icon button (top-right corner), opens a compact dark panel with toggles and
 | Orbit speed | slider | 0.07 rad/s | Range 0.01–0.2 rad/s (visible when auto-orbit is on) |
 | Dot trail | toggle | on | Fading comet tail behind animated dot |
 | Trail width | slider | 3 | Range 1–8 (visible when dot trail is on) |
-| Camera follow | toggle | on | Camera slowly pans to keep dot centred |
+| Camera follow / Smooth FPV | toggle | on | Camera slowly pans to keep dot centred (Free-rotate); enables smooth FPV (FPV mode) |
+| FPV Smoothness | slider | 0.0004 | Range 0.0002–0.05 (visible when Smooth FPV is on in FPV mode) |
+| Iso Azimuth | slider | 45° | Range 0°–360° (visible in Iso mode) |
+| Iso Angle | slider | 45° | Range 15°–75° (visible in Iso mode) |
 | Leg labels | toggle | on | Billboard text at each leg's start point |
 | Ambient particles | toggle | on | ~200 faint drifting particles in scene volume |
 | Route glow | toggle | off | Thicker low-opacity duplicate line behind each route |
@@ -219,6 +234,7 @@ Gear icon button (top-right corner), opens a compact dark panel with toggles and
 | Day/night background | toggle | on | Background shifts by GPX timestamp: black (8pm–6am), dark navy (6am–8pm) |
 | Intro animation | toggle | off | Cinematic camera fly-in on page load (3s, plays once) |
 | Route colour | 3-way | Elevation | LEG (palette), SPEED (gradient), ELEVATION (gradient) |
+| Dot colour | 3-way | Route | Leg (palette), Route (gradient match), White (high contrast). Only visible in Speed/Elevation modes |
 | Cinema mode | toggle | off | Hides all UI overlays except legend and city labels (`C` key) |
 | Vertical preview | toggle | off | 9:16 framing overlay for screen recording |
 | Cinema title | toggle | off | Subtle journey title visible in cinema mode |
@@ -276,19 +292,20 @@ Full-width 2D area chart (60px tall) pinned directly above the elevation profile
 - Click anywhere to scrub playback to that distance
 - Hover shows tooltip: speed (km/h), distance from start (km)
 - Rendered via HTML Canvas 2D, same pattern as ElevationProfile
-- Toggleable via `settings.speedGraph` (default off)
-- Only visible when both `speedGraph` and `elevationProfile` settings are on
+- Toggleable via `settings.speedGraph` (default off), independently of elevation profile
+- Positions at `bottom: 0` when elevation profile is off, `bottom: 80px` when on
 
 ## Bottom Layout Stacking Order
 
 From viewport bottom edge upward:
 
 1. **Screen edge** (bottom: 0)
-2. **Elevation profile chart** — 80px tall, full width, flush to bottom
-3. **Speed graph** (optional) — 60px tall, full width, at `bottom: 80px`
-4. **Controls row**:
+2. **Elevation profile chart** (optional) — 80px tall, full width, flush to bottom
+3. **Speed graph** (optional) — 60px tall, full width, at `bottom: 80px` (with elevation) or `bottom: 0` (without)
+4. **Controls row** — four offset states:
    - Both charts visible: bottom = 152px (80 + 60 + 12px gap)
    - Elevation only: bottom = 92px (80 + 12px gap)
+   - Speed only: bottom = 72px (60 + 12px gap)
    - No charts: bottom = 16px (ControlsPanel) / 24px (PlaybackControls)
    - Left: ControlsPanel (elevation slider + reset view)
    - Centre: PlaybackControls pill + driving time/leg indicator

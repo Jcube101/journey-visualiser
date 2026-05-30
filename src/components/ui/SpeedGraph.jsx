@@ -44,6 +44,7 @@ export default function SpeedGraph() {
   const tracks = useJourneyStore((s) => s.tracks)
   const currentPointIndex = useJourneyStore((s) => s.currentPointIndex)
   const setCurrentPointIndex = useJourneyStore((s) => s.setCurrentPointIndex)
+  const showElevProfile = useJourneyStore((s) => s.settings.elevationProfile)
 
   const allPoints = usePlaybackPoints()
   const canvasRef = useRef(null)
@@ -245,7 +246,7 @@ export default function SpeedGraph() {
     <div
       ref={containerRef}
       className="absolute left-0 right-0 z-10"
-      style={{ height: CHART_HEIGHT, bottom: 80 }}
+      style={{ height: CHART_HEIGHT, bottom: showElevProfile ? 80 : 0 }}
     >
       <div className="w-full h-full bg-black/50 backdrop-blur-sm border-t border-white/10 overflow-hidden">
         <canvas
