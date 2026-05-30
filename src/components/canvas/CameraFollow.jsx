@@ -1,6 +1,7 @@
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { useJourneyStore } from '../../stores/useJourneyStore'
+import { VIEW_MODES } from '../../constants/viewModes'
 
 const _target = new THREE.Vector3()
 const _lerped = new THREE.Vector3()
@@ -10,8 +11,10 @@ export default function CameraFollow() {
 
   useFrame(() => {
     if (!controls) return
-    const { cameraFollow } = useJourneyStore.getState().settings
+    const store = useJourneyStore.getState()
+    const { cameraFollow } = store.settings
     if (!cameraFollow) return
+    if (store.viewMode !== VIEW_MODES.FREE_ROTATE) return
 
     const dotPos = useJourneyStore.getState().dotPosition
     if (!dotPos) return

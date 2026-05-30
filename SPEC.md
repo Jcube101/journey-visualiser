@@ -123,23 +123,44 @@ One-time cinematic camera fly-in on page load:
 - **One-shot:** Tracked by `introDone` Zustand flag; Reset View does not replay the intro
 - **Toggleable:** `introAnimation` setting (default on) — when off, intro is skipped entirely
 
+## View Mode Selector
+
+Four-button pill at top-centre of the screen: **Free · Iso · FPV · Top**. Active mode highlighted with `bg-white/15`. Hidden in cinema mode. Clicking a mode sets `viewMode` in the Zustand store and triggers `resetCamera()`. Wired to `VIEW_MODES` constants.
+
 ## View Modes
 
-### 1. Free-rotate
+All implemented in `CameraController.jsx`. AutoOrbit and CameraFollow only active in FREE_ROTATE mode. Reset View button respects the active mode.
 
-Full OrbitControls — draggable, zoomable, rotatable. Path rendered as a 3D ribbon coloured by speed or elevation.
+### 1. Free-rotate (default)
+
+Full OrbitControls — draggable, zoomable, rotatable. Path rendered as a 3D ribbon coloured by speed or elevation. CameraFit positions camera at azimuth 45°, polar 30°, distance = bbox diagonal × 1.2.
 
 ### 2. Isometric
 
-Fixed diagonal camera angle (45° azimuth, ~35° elevation). No user rotation. Elevation visible as vertical displacement in the scene.
+- Fixed camera at azimuth 45°, polar 45°, distance fitted to scene bounds (diagonal × 1.2)
+- OrbitControls: rotation disabled, zoom disabled, pan allowed
+- Auto-orbit disabled regardless of setting
 
-### 3. First-person fly-through
+### 3. First-person fly-through (FPV)
 
-Camera positioned behind and slightly above the animated dot, looking forward along the path. Route visible ahead of the current position.
+- Camera positioned 12 units behind and 5 units above the animated dot
+- Looks forward 8 units along the direction of travel
+- Direction computed from current point to 5 points ahead (`lookAhead = idx + 5`)
+- Smooth interpolation via `lerp(factor=0.05)` on both `camera.position` and `lookAt` target independently — no snapping
+- Falls back to reverse direction (from previous point) when direction vector is near-zero
+- OrbitControls fully disabled (no rotate, zoom, or pan)
+- When playback is paused, camera holds its last position
+- Auto-orbit disabled regardless of setting
 
 ### 4. Top-down
 
-Orthographic camera looking straight down. Path coloured by speed or elevation as a heatmap. No perspective distortion.
+- Orthographic camera looking straight down from `y = centreY + 200`
+- Frustum sized from scene bounds: `orthoExtent = max(sizeX, sizeZ) × 0.7`, scaled by viewport aspect ratio
+- Camera object has `isOrthographicCamera` set to `true` and uses `makeOrthographic()` for projection
+- Original perspective camera state (fov) saved and restored when switching away
+- Elevation exaggeration has no visual effect (route appears flat from above) — expected
+- OrbitControls: rotation disabled, zoom disabled, pan allowed
+- Auto-orbit disabled regardless of setting
 
 ## Animated Dot
 
@@ -193,6 +214,7 @@ Gear icon button (top-right corner), opens a compact dark panel with toggles and
 | Ambient particles | toggle | on | ~200 faint drifting particles in scene volume |
 | Route glow | toggle | off | Thicker low-opacity duplicate line behind each route |
 | Elevation profile | toggle | on | 2D elevation chart above playback controls, click-to-scrub |
+| Speed graph | toggle | off | 2D speed chart above elevation profile, speed-gradient fill |
 | Live stats | toggle | on | Top-right panel showing elevation, speed, distance, driving time |
 | Day/night background | toggle | on | Background shifts by GPX timestamp: black (8pm–6am), dark navy (6am–8pm) |
 | Intro animation | toggle | off | Cinematic camera fly-in on page load (3s, plays once) |
@@ -242,21 +264,37 @@ Full-width 2D area chart (80px tall) pinned flush to the viewport bottom edge:
 - Axis labels: min/max elevation, total distance
 - Conditionally rendered (`settings.elevationProfile && <ElevationProfile />`) — fully unmounted when toggled off
 
+## Speed Graph
+
+Full-width 2D area chart (60px tall) pinned directly above the elevation profile chart:
+
+- X axis: cumulative distance (km) computed via haversine
+- Y axis: speed (km/h) with global max across all legs
+- Filled segments coloured by speed value using the speed gradient (blue→cyan→green→yellow→red) at 50% opacity
+- Thin white line on top of the fill (0.8px, 40% opacity)
+- White vertical indicator line + dot synced to `currentPointIndex`
+- Click anywhere to scrub playback to that distance
+- Hover shows tooltip: speed (km/h), distance from start (km)
+- Rendered via HTML Canvas 2D, same pattern as ElevationProfile
+- Toggleable via `settings.speedGraph` (default off)
+- Only visible when both `speedGraph` and `elevationProfile` settings are on
+
 ## Bottom Layout Stacking Order
 
 From viewport bottom edge upward:
 
 1. **Screen edge** (bottom: 0)
 2. **Elevation profile chart** — 80px tall, full width, flush to bottom
-3. **Controls row** (bottom: 92px = 80px chart + 12px gap):
+3. **Speed graph** (optional) — 60px tall, full width, at `bottom: 80px`
+4. **Controls row**:
+   - Both charts visible: bottom = 152px (80 + 60 + 12px gap)
+   - Elevation only: bottom = 92px (80 + 12px gap)
+   - No charts: bottom = 16px (ControlsPanel) / 24px (PlaybackControls)
    - Left: ControlsPanel (elevation slider + reset view)
    - Centre: PlaybackControls pill + driving time/leg indicator
-4. **3D scene** — full viewport height, chart overlays the bottom portion
+5. **3D scene** — full viewport height, charts overlay the bottom portion
 
-When elevation profile is toggled off:
-- ControlsPanel drops to `bottom-4`
-- PlaybackControls drops to `bottom-6`
-- No gap or ghost container remains
+When charts are toggled off, controls drop to their default positions. No gap or ghost container remains.
 
 ### Live Stats Bar
 

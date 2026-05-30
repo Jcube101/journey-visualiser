@@ -125,3 +125,17 @@ When the Reel has a voiceover telling the story, keep the caption short — it s
 ### Best posting time for Indian travel content on Instagram
 
 Saturday 8 PM IST. First Reel posted successfully — Bengaluru → Kodaikanal → Bengaluru, May 2026.
+
+## 2026-05-30 — View modes and camera systems
+
+### FPV needs independent lerp on position AND lookAt
+
+The first-person camera must lerp both `camera.position` and the `lookAt` target independently. Lerping only position causes the camera to snap its gaze direction each frame while gliding smoothly — visually jarring, especially through hairpin turns. Lerping only lookAt makes the camera feel disconnected from the dot. Both must use the same lerp factor (0.05) for a cohesive cinematic feel. The look-ahead distance (8 units ahead of the dot) matters more than the follow distance for smoothness.
+
+### Orthographic camera fitting differs from perspective
+
+Top-down view requires an orthographic frustum sized from scene bounds (`Math.max(sizeX, sizeZ) * 0.7`), not a FOV-based distance calculation. The perspective camera's `fov` + `distance` approach doesn't translate — you set `left/right/top/bottom` on the camera directly and call `makeOrthographic()`. Switching between perspective and orthographic on the same camera object requires saving/restoring the original fov and cleaning up the `isOrthographicCamera` property.
+
+### Speed graph and elevation profile share patterns
+
+Both charts use identical click-to-scrub, hover tooltip, resize observer, and playback indicator logic. Currently duplicated. If they diverge further or a third chart is added, extract the shared Canvas 2D chart scaffolding (resize, draw loop, indexFromX, hover state) into a shared hook.

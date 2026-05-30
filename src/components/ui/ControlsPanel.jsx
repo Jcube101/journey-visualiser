@@ -5,9 +5,10 @@ export default function ControlsPanel() {
   const setElevationExaggeration = useJourneyStore((s) => s.setElevationExaggeration)
   const resetCamera = useJourneyStore((s) => s.resetCamera)
   const showElevProfile = useJourneyStore((s) => s.settings.elevationProfile)
+  const showSpeedGraph = useJourneyStore((s) => s.settings.speedGraph)
 
   return (
-    <div className={`absolute left-4 z-10 bg-black/60 border border-white/10 rounded-lg px-4 py-3 backdrop-blur-sm flex items-center gap-4 ${showElevProfile ? 'bottom-[92px]' : 'bottom-4'}`}>
+    <div className="absolute left-4 z-10 bg-black/60 border border-white/10 rounded-lg px-4 py-3 backdrop-blur-sm flex items-center gap-4" style={{ bottom: showElevProfile && showSpeedGraph ? 152 : showElevProfile ? 92 : 16 }}>
       <label className="flex items-center gap-3 text-white/60 text-xs">
         <span className="w-20">Elevation {elevationExaggeration.toFixed(1)}x</span>
         <input

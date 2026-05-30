@@ -93,6 +93,7 @@ export default function SettingsPanel() {
           <Toggle label="Ambient particles" value={settings.ambientParticles} onChange={(v) => setSetting('ambientParticles', v)} />
           <Toggle label="Route glow" value={settings.routeGlow} onChange={(v) => setSetting('routeGlow', v)} />
           <Toggle label="Elevation profile" value={settings.elevationProfile} onChange={(v) => setSetting('elevationProfile', v)} />
+          <Toggle label="Speed graph" value={settings.speedGraph} onChange={(v) => setSetting('speedGraph', v)} />
           <Toggle label="Live stats" value={settings.liveStats} onChange={(v) => setSetting('liveStats', v)} />
           <Toggle label="Day/night background" value={settings.dayNightBg} onChange={(v) => setSetting('dayNightBg', v)} />
           <Toggle label="Intro animation" value={settings.introAnimation} onChange={(v) => setSetting('introAnimation', v)} />

@@ -45,13 +45,15 @@
 - [x] City billboard labels always visible during playback (no cinema mode hiding)
 - [x] Legend repositions into 9:16 frame during vertical/cinema mode
 - [x] Recording guide (`docs/RECORDING_GUIDE.md`) — full OpenScreen workflow for Instagram Reels
-- [ ] Speed graph alongside 3D view
+- [x] Speed graph — 60px filled area chart above elevation profile, speed-gradient coloured fill, click-to-scrub, toggleable (default off)
 
-## Phase 4 — View modes
+## Phase 4 — View modes and selector ✅
 
-- [ ] Isometric — fixed diagonal camera, no user rotation
-- [ ] First-person fly-through — camera behind/above dot looking forward
-- [ ] Top-down — orthographic overhead with heatmap colouring
+- [x] View mode selector UI — four-button pill (Free · Iso · FPV · Top) at top-centre, active mode highlighted, hidden in cinema mode
+- [x] Isometric — fixed 45° azimuth / 45° polar camera, rotation and zoom disabled, pan allowed, auto-orbit disabled
+- [x] First-person fly-through — camera 12 units behind, 5 above the dot, lerp interpolation on both position and lookAt target, cinematic through hairpins, auto-orbit and camera follow disabled
+- [x] Top-down — orthographic camera straight down, fitted to scene bounds, route appears flat (expected), rotation and zoom disabled, pan allowed, auto-orbit disabled
+- [x] Reset view respects active mode — resets to that mode's default camera, not always free-rotate
 
 ## Phase 5 — Dashcam integration
 

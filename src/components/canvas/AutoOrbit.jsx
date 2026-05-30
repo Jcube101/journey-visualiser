@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import { useJourneyStore } from '../../stores/useJourneyStore'
+import { VIEW_MODES } from '../../constants/viewModes'
 
 export default function AutoOrbit() {
   const { controls } = useThree()
@@ -9,9 +10,12 @@ export default function AutoOrbit() {
 
   useFrame((state, delta) => {
     if (!controls) return
-    const { autoOrbit, autoOrbitSpeed } = useJourneyStore.getState().settings
-    const isPlaying = useJourneyStore.getState().isPlaying
+    const store = useJourneyStore.getState()
+    const { autoOrbit, autoOrbitSpeed } = store.settings
+    const isPlaying = store.isPlaying
+    const viewMode = store.viewMode
     if (!autoOrbit || !isPlaying) return
+    if (viewMode !== VIEW_MODES.FREE_ROTATE) return
 
     const now = state.clock.getElapsedTime()
 

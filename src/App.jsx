@@ -13,12 +13,15 @@ import AmbientParticles from './components/canvas/AmbientParticles'
 import RouteGlow from './components/canvas/RouteGlow'
 import DayNightBackground from './components/canvas/DayNightBackground'
 import IntroAnimation from './components/canvas/IntroAnimation'
+import CameraController from './components/canvas/CameraController'
 import ControlsPanel from './components/ui/ControlsPanel'
 import PlaybackControls from './components/ui/PlaybackControls'
 import SettingsPanel from './components/ui/SettingsPanel'
 import LiveStatsBar from './components/ui/LiveStatsBar'
 import GradientLegend, { useVerticalFrameLeft } from './components/ui/GradientLegend'
 import ElevationProfile from './components/ui/ElevationProfile'
+import SpeedGraph from './components/ui/SpeedGraph'
+import ViewModeSelector from './components/ui/ViewModeSelector'
 import TitleCard from './components/ui/TitleCard'
 import { useJourneyStore } from './stores/useJourneyStore'
 import { COLOUR_MODES } from './constants/colourModes'
@@ -94,14 +97,17 @@ export default function App() {
         <DayNightBackground />
         {cameraTarget && <IntroAnimation sceneMetadata={cameraTarget} />}
         {cameraTarget && <CameraFit sceneMetadata={cameraTarget} />}
+        {cameraTarget && <CameraController sceneMetadata={cameraTarget} />}
         <OrbitControls makeDefault enableDamping dampingFactor={0.1} />
         {!hasTracks && !loading && (
           <gridHelper args={[20, 20, '#1e293b', '#1e293b']} />
         )}
       </Canvas>
 
+      {!cinema && hasTracks && <ViewModeSelector />}
       {!cinema && hasTracks && <ControlsPanel />}
       {!cinema && hasTracks && settings.elevationProfile && <ElevationProfile />}
+      {!cinema && hasTracks && settings.speedGraph && settings.elevationProfile && <SpeedGraph />}
       {!cinema && hasTracks && <PlaybackControls />}
       {hasTracks && <SettingsPanel />}
       {!cinema && hasTracks && <LiveStatsBar />}

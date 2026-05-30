@@ -57,11 +57,20 @@ Output goes to `dist/`. Preview locally with `npm run preview`.
 ]
 ```
 
+## View Modes
+
+Four view modes selectable from the pill at top-centre: **Free · Iso · FPV · Top**
+
+- **Free-rotate** — draggable, zoomable 3D view (default)
+- **Isometric** — fixed diagonal camera, pan only
+- **FPV** — first-person fly-through behind the animated dot
+- **Top-down** — orthographic overhead view
+
 ## Controls
 
-- **Orbit** — click and drag to rotate, scroll to zoom
+- **Orbit** — click and drag to rotate, scroll to zoom (Free-rotate mode)
 - **Elevation slider** — exaggerate terrain height (1x–10x)
-- **Reset view** — snap back to the default cinematic camera angle
+- **Reset view** — snap back to the active mode's default camera angle
 - **Playback** — play/pause, scrub through the timeline, speed selector (1x–3600x)
 - **3600x speed** — plays a full 24-hour journey in 24 seconds for social media clips
 - **Cinema mode** (`C`) — hides all UI for clean screen recordings

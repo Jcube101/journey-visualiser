@@ -85,9 +85,14 @@ src/
   - `cameraFollow` (true)
   - `legLabels` (true), `ambientParticles` (true), `routeGlow` (false)
   - `liveStats` (true), `dayNightBg` (false), `elevationProfile` (false)
-  - `introAnimation` (false)
+  - `speedGraph` (false), `introAnimation` (false)
   - `cinemaMode` (false), `verticalPreview` (false), `cinemaTitle` (false), `titleCard` (false)
 - Default colour mode is ELEVATION, default playback speed is 3600x, default elevation exaggeration is 6x
+- View mode selector pill at top-centre (Free · Iso · FPV · Top), wired to VIEW_MODES constants and Zustand store, hidden in cinema mode. Switching mode resets camera; Reset View respects active mode
+- CameraController (`src/components/canvas/CameraController.jsx`) manages all four view modes: sets camera position/type on mode switch, runs FPV per-frame updates via useFrame. CameraFit only applies in FREE_ROTATE mode. AutoOrbit and CameraFollow only active in FREE_ROTATE mode
+- FPV uses lerp on both camera position and lookAt target independently (factor 0.05) — no snapping. Camera 12 units behind dot, 5 above, looks 8 units ahead along travel direction
+- SpeedGraph (`src/components/ui/SpeedGraph.jsx`) — 60px tall, same layout as ElevationProfile, speed-gradient coloured fill per segment, playback indicator, click-to-scrub. Sits directly above elevation profile at `bottom: 80px`
+- Bottom layout stacking: elevation only = controls at 92px; both charts = controls at 152px (80px elevation + 60px speed + 12px gap)
 - City name billboard labels are deduplicated by proximity (DEDUP_RADIUS = 2 scene units) so a junction city like Dindigul only appears once despite being shared by multiple legs
 - Leg names in legend (top-left) and playback bar are driven entirely by the `leg` field in index.json — no hardcoding anywhere
 - Three colour modes (LEG/SPEED/ELEVATION) implemented in RouteTrail with per-point vertex colouring via Drei `<Line vertexColors>`; global normalisation across all legs for consistent colours
@@ -96,7 +101,7 @@ src/
 - Intro animation: IntroAnimation component starts camera at 2.5x fitted distance looking top-down, eases to default position over 3s while route opacity fades 0→1 (imperatively via useFrame, no re-renders); plays once per page load, toggleable via `introAnimation` setting
 - DropZone component removed — app loads exclusively from manifest (`public/gpx/index.json`)
 - ElevationProfile (`src/components/ui/ElevationProfile.jsx`) — full-width bottom panel (80px), Canvas 2D area chart with elevation gradient fill, leg boundary markers inside the chart, playback indicator, click-to-scrub, hover tooltip; pinned flush to viewport bottom (`bottom-0 left-0 right-0`)
-- Bottom layout uses conditional bottom offsets: PlaybackControls and ControlsPanel read `settings.elevationProfile` and switch between `bottom-[92px]` (chart visible, 80px chart + 12px gap) and `bottom-6`/`bottom-4` (chart hidden). ElevationProfile is conditionally rendered in App.jsx (`settings.elevationProfile && <ElevationProfile />`) — not CSS hidden — so layout calculations work correctly when toggled off
+- Bottom layout uses conditional bottom offsets: PlaybackControls and ControlsPanel read both `settings.elevationProfile` and `settings.speedGraph` to compute bottom position (152px both, 92px elevation only, default when neither). Both charts are conditionally rendered — not CSS hidden — so layout calculations work correctly when toggled off
 - Cinema mode (`C` key or settings toggle) hides all UI overlays (controls, stats, settings, elevation profile) leaving only the route, animated dot, legend, and city labels visible. Entering cinema mode forces `verticalPreview` off. `cinemaTitle` setting keeps a subtle journey title visible in cinema mode
 - Vertical preview overlay (phone icon button) draws a centred 9:16 rectangle with darkened surround (60% black), white border, and faint safe zone guides (caption zone bottom 15%, buttons zone right 10%). Only visible when `verticalPreview === true && cinemaMode === false`. The overlay is CSS-only — no canvas resizing. Used to frame the OpenScreen recording region, then turned off before recording
 - Legend position is offset by `(viewportWidth - frameWidth) / 2 + 16px` when in vertical or cinema mode, keeping it inside the 9:16 recording frame. Top offset shifts to 56px to clear the title card

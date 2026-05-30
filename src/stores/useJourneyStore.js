@@ -121,6 +121,7 @@ export const useJourneyStore = create((set, get) => ({
     dayNightBg: false,
     elevationProfile: false,
     introAnimation: false,
+    speedGraph: false,
     cinemaMode: false,
     verticalPreview: false,
     cinemaTitle: false,
