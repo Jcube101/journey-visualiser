@@ -57,10 +57,6 @@ Output goes to `dist/`. Preview locally with `npm run preview`.
 ]
 ```
 
-### Drag-and-drop
-
-Drag `.gpx` files onto the viewport at any time. Each file is added as a standalone leg with an auto-assigned colour.
-
 ## Controls
 
 - **Orbit** — click and drag to rotate, scroll to zoom
@@ -68,6 +64,11 @@ Drag `.gpx` files onto the viewport at any time. Each file is added as a standal
 - **Reset view** — snap back to the default cinematic camera angle
 - **Playback** — play/pause, scrub through the timeline, speed selector (1x–3600x)
 - **3600x speed** — plays a full 24-hour journey in 24 seconds for social media clips
+- **Cinema mode** (`C`) — hides all UI for clean screen recordings
+- **Vertical preview** (phone icon) — shows a 9:16 framing overlay for recording vertical clips
+- **Auto-play** (`R`) — resets, enables cinema mode, and auto-plays in one keystroke
+
+See `docs/RECORDING_GUIDE.md` for the full recording workflow for Instagram Reels.
 
 ## Claude Code CLI
 

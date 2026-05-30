@@ -17,7 +17,7 @@ import ControlsPanel from './components/ui/ControlsPanel'
 import PlaybackControls from './components/ui/PlaybackControls'
 import SettingsPanel from './components/ui/SettingsPanel'
 import LiveStatsBar from './components/ui/LiveStatsBar'
-import GradientLegend from './components/ui/GradientLegend'
+import GradientLegend, { useVerticalFrameLeft } from './components/ui/GradientLegend'
 import ElevationProfile from './components/ui/ElevationProfile'
 import TitleCard from './components/ui/TitleCard'
 import { useJourneyStore } from './stores/useJourneyStore'
@@ -112,33 +112,11 @@ export default function App() {
         </div>
       )}
 
-      {!cinema && hasTracks && colourMode === COLOUR_MODES.LEG && (
-        <div className="absolute top-4 left-4 text-white/60 text-xs space-y-1">
-          {tracks.map((t) => (
-            <div key={t.id} className="flex items-center gap-2">
-              <span
-                className="w-3 h-3 rounded-full inline-block"
-                style={{ backgroundColor: t.colour }}
-              />
-              <span>{t.label}</span>
-              <span className="text-white/30">
-                {t.metadata.totalPoints} pts / {t.metadata.segments} seg
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-      {!cinema && hasTracks && <GradientLegend />}
+      {hasTracks && colourMode === COLOUR_MODES.LEG && <LegLegend tracks={tracks} />}
+      {hasTracks && <GradientLegend />}
 
       {cinema && settings.cinemaTitle && hasTracks && (
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-          <div className="text-white/40 text-sm font-light tracking-widest uppercase">
-            {tracks[0].label.split(/[→—]/)[0].trim()} → {(() => {
-              const last = tracks[tracks.length - 1].label.split(/[→—]/)
-              return last[last.length - 1].trim()
-            })()}
-          </div>
-        </div>
+        <CinemaTitleOverlay tracks={tracks} />
       )}
 
       {hasTracks && <TitleCard />}
@@ -176,6 +154,68 @@ export default function App() {
       )}
 
       {vertical && !cinema && <VerticalOverlay />}
+    </div>
+  )
+}
+
+function buildJourneyTitle(tracks) {
+  const firstCity = tracks[0].label.split(/[→—]/)[0].trim()
+  const lastParts = tracks[tracks.length - 1].label.split(/[→—]/)
+  const lastCity = lastParts[lastParts.length - 1].trim()
+
+  let furthestCity = lastCity
+  let maxDist = 0
+  const startPt = tracks[0].rawPoints[0]
+  if (startPt) {
+    const R = 6371
+    for (const track of tracks) {
+      const parts = track.label.split(/[→—]/)
+      const dest = parts[parts.length - 1].trim()
+      const lp = track.rawPoints[track.rawPoints.length - 1]
+      if (lp) {
+        const dLat = (lp.lat - startPt.lat) * Math.PI / 180
+        const dLon = (lp.lon - startPt.lon) * Math.PI / 180
+        const a = Math.sin(dLat / 2) ** 2 +
+          Math.cos(startPt.lat * Math.PI / 180) * Math.cos(lp.lat * Math.PI / 180) *
+          Math.sin(dLon / 2) ** 2
+        const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        if (d > maxDist) { maxDist = d; furthestCity = dest }
+      }
+    }
+  }
+
+  if (firstCity === lastCity && furthestCity !== firstCity) {
+    return `${firstCity} → ${furthestCity} → ${lastCity}`
+  }
+  return firstCity === lastCity ? firstCity : `${firstCity} → ${lastCity}`
+}
+
+function CinemaTitleOverlay({ tracks }) {
+  return (
+    <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+      <div className="text-white/40 text-sm font-light tracking-widest uppercase">
+        {buildJourneyTitle(tracks)}
+      </div>
+    </div>
+  )
+}
+
+function LegLegend({ tracks }) {
+  const frameLeft = useVerticalFrameLeft()
+  return (
+    <div className="absolute top-4 text-white/60 text-xs space-y-1 z-10" style={{ left: frameLeft != null ? `${frameLeft}px` : '16px' }}>
+      {tracks.map((t) => (
+        <div key={t.id} className="flex items-center gap-2">
+          <span
+            className="w-3 h-3 rounded-full inline-block"
+            style={{ backgroundColor: t.colour }}
+          />
+          <span>{t.label}</span>
+          <span className="text-white/30">
+            {t.metadata.totalPoints} pts / {t.metadata.segments} seg
+          </span>
+        </div>
+      ))}
     </div>
   )
 }

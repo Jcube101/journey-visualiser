@@ -29,7 +29,7 @@
 - [x] Live stats bar — elevation, speed, distance, driving time
 - [x] Settings panel — gear icon with toggles/sliders for all visual features
 
-## Phase 3 — Colour modes, charts, and intro
+## Phase 3 — Colour modes, charts, cinema, and recording ✅
 
 - [x] Speed colour mode — single gradient ribbon (blue→cyan→green→yellow→red) with gradient legend
 - [x] Elevation colour mode — mountain gradient (deep blue→green→yellow-green→tan→white) with gradient legend
@@ -38,6 +38,13 @@
 - [x] Intro camera animation — cinematic fly-in from top-down with route fade-in over 3s
 - [x] Elevation profile chart — full-width bottom panel (80px), gradient fill, leg boundary markers, click-to-scrub, hover tooltip, synced playback indicator
 - [x] Layout rework — screen edge → elevation chart → controls → 3D scene stacking; all bottom elements reposition correctly when elevation profile toggled off
+- [x] Cinema mode (`C` key) — hides all UI overlays, leaving only the route + animated dot visible
+- [x] Vertical 9:16 preview overlay — framing guide with safe zone indicators (caption zone, buttons zone), disappears in cinema mode
+- [x] Auto-play record sequence (`R` key) — resets playback → 1s pause → enables cinema mode → auto-plays
+- [x] Title card — correct round-trip format (Origin → Peak → Origin), fades in/out at playback start in cinema mode
+- [x] City billboard labels always visible during playback (no cinema mode hiding)
+- [x] Legend repositions into 9:16 frame during vertical/cinema mode
+- [x] Recording guide (`docs/RECORDING_GUIDE.md`) — full OpenScreen workflow for Instagram Reels
 - [ ] Speed graph alongside 3D view
 
 ## Phase 4 — View modes

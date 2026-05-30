@@ -1,11 +1,33 @@
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useJourneyStore } from '../../stores/useJourneyStore'
 import { COLOUR_MODES } from '../../constants/colourModes'
 import { SPEED_CSS_GRADIENT, ELEVATION_CSS_GRADIENT } from '../../utils/colourMap'
 
+function useVerticalFrameLeft() {
+  const vertical = useJourneyStore((s) => s.settings.verticalPreview)
+  const cinema = useJourneyStore((s) => s.settings.cinemaMode)
+  const [left, setLeft] = useState(null)
+
+  useEffect(() => {
+    if (!vertical && !cinema) { setLeft(null); return }
+    function calc() {
+      const frameWidth = window.innerHeight * 9 / 16
+      setLeft((window.innerWidth - frameWidth) / 2 + 16)
+    }
+    calc()
+    window.addEventListener('resize', calc)
+    return () => window.removeEventListener('resize', calc)
+  }, [vertical, cinema])
+
+  return left
+}
+
+export { useVerticalFrameLeft }
+
 export default function GradientLegend() {
   const tracks = useJourneyStore((s) => s.tracks)
   const colourMode = useJourneyStore((s) => s.colourMode)
+  const frameLeft = useVerticalFrameLeft()
 
   const { maxSpeedKmh, minEle, maxEle } = useMemo(() => {
     let maxS = 0, minE = Infinity, maxE = -Infinity
@@ -35,7 +57,7 @@ export default function GradientLegend() {
   const title = isSpeed ? 'Speed' : 'Elevation'
 
   return (
-    <div className="absolute top-4 left-4 z-10 bg-black/60 border border-white/10 rounded-lg px-3 py-2 backdrop-blur-sm text-[10px] text-white/60 w-44">
+    <div className="absolute z-10 bg-black/60 border border-white/10 rounded-lg px-3 py-2 backdrop-blur-sm text-[10px] text-white/60 w-44" style={{ top: frameLeft != null ? '56px' : '16px', left: frameLeft != null ? `${frameLeft}px` : '16px' }}>
       <div className="text-white/80 text-xs mb-1.5">{title}</div>
       <div
         className="h-2.5 rounded-sm mb-1"

@@ -87,7 +87,7 @@ export const useJourneyStore = create((set, get) => ({
 
   // --- Playback ---
   isPlaying: false,
-  playbackSpeed: 1,
+  playbackSpeed: 3600,
   currentPointIndex: 0,
   activeLeg: null,
 
@@ -99,8 +99,8 @@ export const useJourneyStore = create((set, get) => ({
 
   // --- View ---
   viewMode: VIEW_MODES.FREE_ROTATE,
-  colourMode: COLOUR_MODES.LEG,
-  elevationExaggeration: 3.0,
+  colourMode: COLOUR_MODES.ELEVATION,
+  elevationExaggeration: 6.0,
   cameraResetKey: 0,
 
   setViewMode: (mode) => set({ viewMode: mode }),
@@ -110,17 +110,17 @@ export const useJourneyStore = create((set, get) => ({
   // --- Settings ---
   settings: {
     autoOrbit: true,
-    autoOrbitSpeed: 0.05,
+    autoOrbitSpeed: 0.07,
     dotTrail: true,
     dotTrailWidth: 3,
-    cameraFollow: false,
+    cameraFollow: true,
     legLabels: true,
     ambientParticles: true,
-    routeGlow: true,
+    routeGlow: false,
     liveStats: true,
     dayNightBg: false,
     elevationProfile: false,
-    introAnimation: true,
+    introAnimation: false,
     cinemaMode: false,
     verticalPreview: false,
     cinemaTitle: false,

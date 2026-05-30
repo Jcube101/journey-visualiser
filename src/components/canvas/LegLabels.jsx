@@ -42,7 +42,7 @@ export default function LegLabels() {
     return deduped
   }, [tracks])
 
-  if (!legLabels || cinemaMode) return null
+  if (!legLabels) return null
 
   return (
     <>

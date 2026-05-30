@@ -64,12 +64,33 @@ export default function TitleCard() {
 
   if (!visible || tracks.length === 0) return null
 
-  const firstLabel = tracks[0].label
-  const lastLabel = tracks[tracks.length - 1].label
-  const firstCity = firstLabel.split(/[→—]/)[0].trim()
-  const lastParts = lastLabel.split(/[→—]/)
+  const firstCity = tracks[0].label.split(/[→—]/)[0].trim()
+  const lastParts = tracks[tracks.length - 1].label.split(/[→—]/)
   const lastCity = lastParts[lastParts.length - 1].trim()
-  const title = firstCity === lastCity ? firstCity : `${firstCity} → ${lastCity}`
+
+  let furthestCity = lastCity
+  let maxDist = 0
+  const startPt = tracks[0].rawPoints[0]
+  if (startPt) {
+    for (const track of tracks) {
+      const parts = track.label.split(/[→—]/)
+      const dest = parts[parts.length - 1].trim()
+      const lastPt = track.rawPoints[track.rawPoints.length - 1]
+      if (lastPt) {
+        const d = haversine(startPt.lat, startPt.lon, lastPt.lat, lastPt.lon)
+        if (d > maxDist) { maxDist = d; furthestCity = dest }
+      }
+    }
+  }
+
+  let title
+  if (firstCity === lastCity && furthestCity !== firstCity) {
+    title = `${firstCity} → ${furthestCity} → ${lastCity}`
+  } else if (firstCity === lastCity) {
+    title = firstCity
+  } else {
+    title = `${firstCity} → ${lastCity}`
+  }
 
   let totalKm = 0
   for (let i = 1; i < allPoints.length; i++) {

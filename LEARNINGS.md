@@ -103,3 +103,25 @@ Using `{flag && <Component />}` to unmount a toggled panel is better than hiding
 ### Shared offset constant for bottom panel stacking
 
 All bottom-positioned elements (PlaybackControls, ControlsPanel) need to agree on the chart height so they can offset above it. Rather than magic numbers scattered across files, both components read `settings.elevationProfile` and apply the same conditional: `bottom-[92px]` when chart is present (80px chart + 12px gap), default bottom offset when absent. A CSS variable or shared constant would be even cleaner for future additions to the bottom stack.
+
+## 2026-05-30 — Vertical recording workflow and social media
+
+### CSS overlay beats canvas resizing for framing guides
+
+For screen recording framing (9:16 vertical), use a CSS overlay (dark mask + white border + safe zone guides) rather than resizing the canvas or constraining the WebGL viewport. The scene renders at full resolution; the overlay only shows where to position the recording region. The screen recorder (OBS/OpenScreen) handles the actual crop. This keeps the 3D rendering unchanged and avoids aspect ratio bugs in Three.js.
+
+### OBS with ffmpeg -c copy for trim/strip pipeline
+
+OBS at high bitrate is the correct tool for quality screen recording. Trimming with `ffmpeg -c copy` (no re-encoding) gives zero quality loss. Clipchamp and Windows Snipping Tool both compress aggressively and introduce artifacts. The pipeline: OBS record → ffmpeg trim → upload.
+
+### ElevenLabs and Indian place names
+
+ElevenLabs text-to-speech struggles with Indian place names (Bengaluru, Kodaikanal, Dindigul). Two workarounds: phonetic spelling in the script, or rewriting to avoid specific names entirely. Avoiding names produces cleaner audio with fewer retakes.
+
+### Instagram caption should complement voiceover, not repeat it
+
+When the Reel has a voiceover telling the story, keep the caption short — it should add context (dates, distance, gear) rather than repeat what the audio already says. Long captions compete with the audio for attention.
+
+### Best posting time for Indian travel content on Instagram
+
+Saturday 8 PM IST. First Reel posted successfully — Bengaluru → Kodaikanal → Bengaluru, May 2026.

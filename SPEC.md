@@ -35,7 +35,7 @@ A leg with multiple files has its points merged and sorted by timestamp before b
 GPS coordinates (lat/lon/elevation) are converted to a normalised 3D scene space:
 
 - Lat/lon mapped to X/Z plane using equirectangular projection (lon scaled by cos(centreLat))
-- Elevation mapped to the Y axis with configurable exaggeration (default 3x, range 1x–10x)
+- Elevation mapped to the Y axis with configurable exaggeration (default 6x, range 1x–10x)
 - All values normalised so the longest axis fits within 100 scene units
 - Multi-leg trips use shared global bounds (`overrideBounds`) so legs stitch geographically
 
@@ -70,7 +70,7 @@ The same position is used on initial load and when "Reset view" is clicked.
 
 Three modes, toggled via settings panel (Leg / Speed / Elev):
 
-### LEG (default)
+### LEG
 
 Each leg rendered with its assigned palette colour. Legend shows colour dots with leg names.
 
@@ -88,7 +88,7 @@ Per-point vertex colouring based on instantaneous speed, normalised against glob
 
 Gradient stops at t=0, 0.2, 0.4, 0.7, 1.0. Legend shows gradient bar with "0 km/h → {maxSpeed} km/h".
 
-### ELEVATION
+### ELEVATION (default)
 
 Per-point vertex colouring based on elevation, normalised against global min/max elevation across all legs.
 
@@ -185,18 +185,22 @@ Gear icon button (top-right corner), opens a compact dark panel with toggles and
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
 | Auto-orbit | toggle | on | Slow camera rotation during playback. Pauses when user grabs mouse, resumes after 2s inactivity |
-| Orbit speed | slider | 0.05 rad/s | Range 0.01–0.2 rad/s (visible when auto-orbit is on) |
+| Orbit speed | slider | 0.07 rad/s | Range 0.01–0.2 rad/s (visible when auto-orbit is on) |
 | Dot trail | toggle | on | Fading comet tail behind animated dot |
 | Trail width | slider | 3 | Range 1–8 (visible when dot trail is on) |
-| Camera follow | toggle | off | Camera slowly pans to keep dot centred |
+| Camera follow | toggle | on | Camera slowly pans to keep dot centred |
 | Leg labels | toggle | on | Billboard text at each leg's start point |
 | Ambient particles | toggle | on | ~200 faint drifting particles in scene volume |
-| Route glow | toggle | on | Thicker low-opacity duplicate line behind each route |
+| Route glow | toggle | off | Thicker low-opacity duplicate line behind each route |
 | Elevation profile | toggle | on | 2D elevation chart above playback controls, click-to-scrub |
 | Live stats | toggle | on | Top-right panel showing elevation, speed, distance, driving time |
 | Day/night background | toggle | on | Background shifts by GPX timestamp: black (8pm–6am), dark navy (6am–8pm) |
-| Intro animation | toggle | on | Cinematic camera fly-in on page load (3s, plays once) |
-| Route colour | 3-way | Leg | LEG (palette), SPEED (gradient), ELEVATION (gradient) |
+| Intro animation | toggle | off | Cinematic camera fly-in on page load (3s, plays once) |
+| Route colour | 3-way | Elevation | LEG (palette), SPEED (gradient), ELEVATION (gradient) |
+| Cinema mode | toggle | off | Hides all UI overlays except legend and city labels (`C` key) |
+| Vertical preview | toggle | off | 9:16 framing overlay for screen recording |
+| Cinema title | toggle | off | Subtle journey title visible in cinema mode |
+| Title card | toggle | off | Fade-in/out journey title + distance at playback start |
 
 ## Visual Features
 
@@ -270,7 +274,7 @@ Small panel (top-right, below settings gear) showing live values updated as dot 
 - `colourMode` — LEG, SPEED, or ELEVATION
 - `elevationExaggeration` — Y axis multiplier (1–10)
 - `isPlaying` — playback state
-- `playbackSpeed` — multiplier
+- `playbackSpeed` — multiplier (default 3600)
 - `currentPointIndex` — scrub position
 - `activeLeg` — which track is being animated
 - `cameraResetKey` — incremented to trigger camera reset
@@ -280,3 +284,51 @@ Small panel (top-right, below settings gear) showing live values updated as dot 
 - `introPlaying` — whether the intro animation is currently active
 - `introProgress` — 0→1 progress of the intro animation (read imperatively via getState, not subscribed)
 - `introDone` — whether the intro has completed (prevents replay on Reset View)
+
+## Cinema Mode
+
+Triggered by `C` key or settings toggle. Hides all UI overlays (controls panel, playback controls, live stats bar, settings panel, elevation profile) leaving only:
+- The 3D route and animated dot
+- City billboard labels (always visible when `legLabels` is on)
+- Colour legend (gradient bar or leg dots) — repositioned into the 9:16 frame
+- Cinema title (optional, via `cinemaTitle` setting)
+- Title card (optional, via `titleCard` setting)
+
+Entering cinema mode forces `verticalPreview` to `false` in the store so the framing overlay doesn't appear in recordings.
+
+## Vertical Preview Overlay
+
+CSS-only overlay — no canvas resizing or DOM restructuring. Draws a centred 9:16 rectangle calculated as `width = viewportHeight × 9/16`, centred horizontally. Components:
+- Dark mask (60% black) on left and right sides
+- White border around the 9:16 cutout
+- Caption safe zone: bottom 15%, faint red border + label
+- Buttons safe zone: right 10%, faint red border + label
+
+Only renders when `verticalPreview === true && cinemaMode === false`.
+
+## Auto-Play Record Sequence
+
+Triggered by `R` key. Sequence:
+1. Pause playback and reset `currentPointIndex` to 0
+2. Wait 1 second
+3. Enable cinema mode (if not already on)
+4. Start playback
+
+## Title Card
+
+Renders in `TitleCard.jsx`. Shows journey title + total distance (km) as a centred overlay that fades in and out over 2.5 seconds at playback start. Only active when both `cinemaMode` and `titleCard` settings are on.
+
+Title logic (generic for any round trip):
+1. Extract first city from leg 1's label (text before `→`)
+2. Find the furthest destination by haversine distance from start point across all legs
+3. Extract last city from the final leg's label (text after last `→`)
+4. Format: `Origin → Furthest → Destination` (or `Origin → Destination` for one-way, or just `Origin` if start equals end with no intermediate peak)
+
+## Legend Positioning
+
+In normal mode: `top: 16px, left: 16px` (standard top-left corner).
+
+In vertical preview or cinema mode: legend shifts to sit inside the 9:16 recording frame:
+- `left = (viewportWidth - frameWidth) / 2 + 16px` where `frameWidth = viewportHeight × 9/16`
+- `top = 56px` (below the title card area: 40px title + 16px gap)
+- Responsive to window resizes via `useEffect` + resize listener
