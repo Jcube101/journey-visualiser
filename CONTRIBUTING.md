@@ -93,14 +93,20 @@ AnimatedDot (inside Canvas)
 
 ## Deployment
 
-The site is self-hosted on a Raspberry Pi (jobpi). It is a pure static build — no backend, no systemd service. The Vite output in `dist/` is served by **Nginx on port 3002**, and the **pi-home Cloudflare Tunnel** exposes it over HTTPS at **https://visualiser.job-joseph.com**.
+The site is self-hosted on a Raspberry Pi (jobpi) as two services: **Nginx (port 3002)** serves the Vite `dist/` build and proxies `/api/` to the **FastAPI `journey-api` backend (port 8009)**, with the **pi-home Cloudflare Tunnel** exposing it over HTTPS at **https://visualiser.job-joseph.com**. Both repos are cloned on the Pi.
 
-The repo is cloned on the Pi. To deploy code changes, push to `main`, then on the Pi run:
+**Frontend changes** — push to `main`, then on the Pi:
 
 ```bash
-git pull && npm install && npm run build && sudo systemctl reload nginx
+cd ~/projects/journey-visualiser && git pull && npm install && npm run build && sudo systemctl reload nginx
 ```
 
 No service restart is needed — Nginx serves the freshly built `dist/` immediately after reload.
+
+**Backend changes** (the separate `journey-visualiser-api` repo) — push, then on the Pi:
+
+```bash
+cd ~/projects/journey-visualiser-api && git pull && sudo systemctl restart journey-api
+```
 
 **Sudo access:** the sudoers file at `/etc/sudoers.d/journey-visualiser-deploy` grants passwordless sudo for all commands required by this deploy workflow (the `systemctl reload nginx` step, and the one-time `chmod o+x /home/jcube` traversal fix), so deployment runs without interactive password prompts.

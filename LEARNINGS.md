@@ -193,3 +193,34 @@ The client parser produced `Date` objects; JSON serialisation flattens these to 
 ### Don't `git pull` a Pi working tree that has uncommitted edits
 
 The documented deploy recipe starts with `git pull`, which assumes changes arrive from the remote. When editing **directly in the Pi clone**, the working tree already holds the changes — pulling first risks merge conflicts against the uncommitted edits (and is a no-op at best). The clean order is: edit in the working tree → build/deploy → `git commit` → `git push`. Future pulls are then conflict-free because local and remote are back in sync.
+
+## 2026-06-12 — Stripping raw coordinates from an API requires a full consumer audit
+
+The headline lesson from moving GPX behind the API: **when you remove a field from a data contract, you must audit every downstream consumer — the dependencies are often silent.** Removing raw lat/lon/ele from the `/api/legs` response broke four features that read those fields indirectly, none of which threw an obvious error:
+
+- **Elevation colour mode** read `point.ele` to normalise the colour ramp.
+- **Distance readouts** (LiveStatsBar, SpeedGraph, ElevationProfile, TitleCard) computed haversine over lat/lon.
+- **Elevation slider** re-ran `transformToScene` on raw coords.
+- **Day/night background** read `point.time` as a `Date`.
+
+Most failed *silently* — `prev.lat != null` guards just made distances quietly read 0, and `NaN` coordinates blanked the scene rather than erroring. A grep for `.lat`/`.lon`/`.ele`/`.time`/`.getTime` across `src/` was the only reliable way to find them all.
+
+### Aliasing `ele → y` works because the projection is affine
+
+Scene `y = (ele − centreEle) · eleScale · exaggeration` is an **affine function of elevation** (positive slope). Normalising over `y` between `[minY, maxY]` yields the exact same 0→1 parameter as normalising elevation over `[minEle, maxEle]`, so elevation colours are pixel-identical without ever shipping real metres. The same affine property is why the elevation slider can just **rescale `y` by the exaggeration ratio** instead of re-projecting.
+
+### `sceneDistanceKm()` — reconstructing geographic distance from scene coords
+
+Dividing a scene-space delta by the shared projection `scale` recovers degrees (the X axis already bakes in the `cos(lat)` correction), and `1° ≈ 111.32 km`: `km = hypot(Δx/scale, Δz/scale) · 111.32`. This is the correct general pattern for getting real distances back out of a normalised scene when the source coordinates are gone.
+
+### JSON has no Date type — always re-parse ISO strings on the client
+
+`JSON.stringify(new Date())` emits an ISO string and `JSON.parse` gives it straight back as a string, never a `Date`. Any consumer calling `.getTime()`/`.getHours()` breaks silently. Re-wrap with `new Date(str)` at the fetch boundary.
+
+### Edit the Pi working tree *before* pulling, not after
+
+(Reiterating the prior entry from real recurrence.) Pulling into a dirty working tree risks conflicts — edit, build, commit, push, and only then are future pulls clean.
+
+### SCP from Git Bash fails with a cloudflared ProxyCommand
+
+Copying files to the Pi via `scp` from **Git Bash** fails when `~/.ssh/config` uses a cloudflared `ProxyCommand` with a Windows-style path — Git Bash can't execute it. Use **PowerShell** `scp` (with `C:\Users\...` paths) instead, or rewrite the `ProxyCommand` path to `/c/Users/...` for Git Bash compatibility.

@@ -66,10 +66,15 @@
 - [x] Exposed via the pi-home Cloudflare Tunnel
 - [x] Live at https://visualiser.job-joseph.com
 
-## Phase 6 — Dashcam integration
+## Phase 6 — Private GPX backend & API ✅
 
-- [ ] Sync dashcam video timestamps with GPX timestamps
-- [ ] Display footage alongside the route at the corresponding point
+- [x] FastAPI service (`journey-api`) at `~/projects/journey-visualiser-api/`, systemd-managed, bound to `127.0.0.1:8009`
+- [x] `GET /api/legs` reads the private GPX manifest, merges + sorts by timestamp, and transforms server-side
+- [x] 5 km privacy trim applied to each leg end (cumulative haversine)
+- [x] Scene-coordinate-only response — zero raw lat/lon/ele ever leaves the server
+- [x] GPX files moved private to `~/projects/journey-visualiser-api/data/gpx/` (no longer statically served; `dist/gpx/` removed)
+- [x] Frontend `loadManifest.js` repointed to `/api/legs` (relative path — Vite proxy in dev, Nginx `/api/` proxy in prod)
+- [x] Full stack live at https://visualiser.job-joseph.com
 
 ## Phase 7 — Polish and portfolio integration (next)
 
@@ -77,3 +82,8 @@
 - [ ] Shareable URL state (which GPX, playback position, view mode)
 - [ ] Mobile responsiveness
 - [ ] Use OpenScreen (free, open-source Screen Studio alternative) for final social media clip recording — supports variable speed per segment, zoom, motion blur, no watermark. Download from github.com/siddharthvaddem/openscreen/releases
+
+## Phase 8 — Dashcam integration
+
+- [ ] Sync dashcam video timestamps with GPX timestamps
+- [ ] Display footage alongside the route at the corresponding point

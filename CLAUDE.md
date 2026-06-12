@@ -17,15 +17,31 @@ GPX Journey Visualiser — a React + Vite + Three.js web app that renders GPX ro
 
 ## Deployment
 
-The app is a pure static frontend — `npm run build` emits to `dist/`, which is served by **Nginx on port 3002** on the Raspberry Pi (jobpi). **Cloudflare Tunnel** (pi-home) handles HTTPS and exposes it on the subdomain **visualiser.job-joseph.com**. No backend, no systemd service.
+The frontend is a static Vite build — `npm run build` emits to `dist/`, served by **Nginx on port 3002** on the Raspberry Pi (jobpi). The same Nginx server block **proxies `/api/` → `127.0.0.1:8009`** to the backend (see below). **Cloudflare Tunnel** (pi-home) handles HTTPS and exposes everything on **visualiser.job-joseph.com**.
 
 To update the live site after code changes (the repo is cloned on the Pi):
 
 ```bash
+# Frontend
 git pull && npm install && npm run build && sudo systemctl reload nginx
+# Backend (separate repo)
+cd ~/projects/journey-visualiser-api && git pull && sudo systemctl restart journey-api
 ```
 
 **Permissions note:** `/home/jcube` must have `o+x` (`sudo chmod o+x /home/jcube`) so the Nginx `www-data` worker can traverse into the path to reach `dist/`. Without it, every request returns HTTP 500 with "Permission denied" in the Nginx error log, even when `dist/` itself has correct permissions.
+
+## Backend (journey-api)
+
+The GPX data is served privately by a FastAPI service so raw GPX is never statically exposed:
+
+- **Location/port:** `~/projects/journey-visualiser-api/` (separate repo), port **8009**, run as systemd service **`journey-api.service`** bound to `127.0.0.1:8009`.
+- **`GET /api/legs`:** reads GPX from the private `data/gpx/` directory, merges + sorts each leg by timestamp, **trims 5 km off each end**, transforms to scene coordinates against shared global bounds, and returns **zero raw lat/lon/ele** — only `{x, y, z, speed, time (ISO string), segmentIndex}` per point plus a `sceneMetadata` of `{scale, elevationExaggeration, sceneBounds}` (no `centre`). `GET /health` returns `{"status":"ok"}`.
+- **Frontend wiring:** `loadManifest.js` fetches `/api/legs` via a **relative path** — works in dev via the Vite proxy (`/api` → `127.0.0.1:8009` in `vite.config.js`) and in prod via the Nginx `/api/` proxy block. No client-side GPX parsing or `geoTransform` in this path.
+- **Coordinate-stripping consequences** (because the API omits raw coords):
+  - `ele` is **aliased to scene `y`** for the elevation colour mode (`y` is an affine function of elevation, so normalised colours are identical).
+  - The **elevation slider rescales `y` by the exaggeration ratio** instead of re-running `transformToScene` on absent raw coords.
+  - Distance readouts use a shared **`sceneDistanceKm()`** helper (in `geoTransform.js`) — scene delta ÷ `scale` × 111.32 km/° — consumed by LiveStatsBar/SpeedGraph/ElevationProfile/TitleCard.
+  - Point `time` is **re-parsed to a `Date`** from the ISO string after fetch (JSON serialisation loses the Date type).
 
 ## Architecture
 

@@ -388,17 +388,26 @@ In vertical preview or cinema mode: legend shifts to sit inside the 9:16 recordi
 - `top = 56px` (below the title card area: 40px title + 16px gap)
 - Responsive to window resizes via `useEffect` + resize listener
 
+## Privacy Architecture
+
+GPX files contain personal location history and are **never committed to the repo and never statically served**. They live privately at `~/projects/journey-visualiser-api/data/gpx/` on the Pi, readable only by the backend process.
+
+- **API returns scene coordinates only.** Each point is `{ x, y, z, speed, time (ISO string), segmentIndex }` — no raw `lat`/`lon`/`ele` ever crosses the wire.
+- **5 km trim** is applied server-side to each leg's start and end (cumulative haversine) before transforming, so the response cannot reveal precise origin/destination addresses.
+- **`sceneMetadata` omits `centre`.** Only `scale`, `elevationExaggeration`, and `sceneBounds` are returned — the geographic centre (`lat`/`lon`) used during projection is dropped so coordinates can't be reconstructed.
+- **Nginx proxies `/api/` → `127.0.0.1:8009`** (the `journey-api` FastAPI service); the GPX directory is outside any Nginx `root`, so there is no static path to the files.
+
 ## Hosting
 
-Deployed as a static site — no backend, no server runtime.
+Two cooperating services on the Pi behind one Cloudflare Tunnel:
 
 | Item | Value |
 |---|---|
 | Host | Raspberry Pi (jobpi) — aarch64, Debian 13 Trixie |
-| Server | Nginx static file server, serving `dist/` |
-| Port | 3002 |
-| Tunnel | Cloudflare Tunnel `pi-home` |
+| Frontend | Nginx static file server, serving `dist/` on port **3002** |
+| Backend | FastAPI `journey-api` (systemd) on **127.0.0.1:8009**, reached via the Nginx `/api/` proxy block |
+| Tunnel | Cloudflare Tunnel `pi-home` → `localhost:3002` |
 | Subdomain | visualiser.job-joseph.com (HTTPS via the tunnel) |
 | Node | v22 — confirmed working on Pi aarch64 for React/Vite builds |
 
-Build output (`npm run build` → `dist/`) is served directly by Nginx; the Cloudflare Tunnel proxies `https://visualiser.job-joseph.com` to `localhost:3002`. No systemd service is involved.
+Build output (`npm run build` → `dist/`) is served directly by Nginx, which also reverse-proxies `/api/` to the backend; the Cloudflare Tunnel proxies `https://visualiser.job-joseph.com` to `localhost:3002`.

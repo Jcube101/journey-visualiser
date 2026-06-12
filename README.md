@@ -99,14 +99,22 @@ This skips tool approval prompts so Claude can edit files, run builds, and execu
 
 Live at **https://visualiser.job-joseph.com**.
 
-Self-hosted on a Raspberry Pi (jobpi). The static Vite build in `dist/` is served by **Nginx on port 3002**, exposed to the internet via the **pi-home Cloudflare Tunnel** on the subdomain **visualiser.job-joseph.com**. There is no backend and no systemd service — just Nginx serving static files plus the tunnel handling HTTPS.
+Self-hosted on a Raspberry Pi (jobpi) as **two cooperating services** behind the **pi-home Cloudflare Tunnel** (subdomain **visualiser.job-joseph.com**):
+
+- **Nginx (port 3002)** serves the static React build in `dist/` **and** reverse-proxies `/api/` → the backend.
+- **FastAPI `journey-api` (port 8009)**, a systemd service in the separate `journey-visualiser-api` repo, serves `GET /api/legs` with the route data already transformed to scene coordinates.
+
+**GPX files are never committed and never statically served.** They live privately in the API's data directory (`~/projects/journey-visualiser-api/data/gpx/`) on the Pi, parsed server-side; the API returns only scene coordinates (no raw lat/lon/ele).
 
 ### Update workflow
 
-The repo is cloned on the Pi. After pushing code changes, update the live site by rebuilding on the Pi and reloading Nginx:
+The repos are cloned on the Pi. After pushing changes:
 
 ```bash
+# Frontend
 git pull && npm install && npm run build && sudo systemctl reload nginx
+# Backend
+cd ~/projects/journey-visualiser-api && git pull && sudo systemctl restart journey-api
 ```
 
-No service restart is needed — Nginx serves the freshly built `dist/` immediately after reload.
+For the frontend, no service restart is needed — Nginx serves the freshly built `dist/` immediately after reload.
