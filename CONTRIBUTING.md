@@ -90,3 +90,17 @@ AnimatedDot (inside Canvas)
 - A significant architectural decision is made
 - A new utility or component is added
 - The build process or folder structure changes
+
+## Deployment
+
+The site is self-hosted on a Raspberry Pi (jobpi). It is a pure static build — no backend, no systemd service. The Vite output in `dist/` is served by **Nginx on port 3002**, and the **pi-home Cloudflare Tunnel** exposes it over HTTPS at **https://visualiser.job-joseph.com**.
+
+The repo is cloned on the Pi. To deploy code changes, push to `main`, then on the Pi run:
+
+```bash
+git pull && npm install && npm run build && sudo systemctl reload nginx
+```
+
+No service restart is needed — Nginx serves the freshly built `dist/` immediately after reload.
+
+**Sudo access:** the sudoers file at `/etc/sudoers.d/journey-visualiser-deploy` grants passwordless sudo for all commands required by this deploy workflow (the `systemctl reload nginx` step, and the one-time `chmod o+x /home/jcube` traversal fix), so deployment runs without interactive password prompts.

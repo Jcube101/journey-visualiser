@@ -59,12 +59,19 @@
 - [x] FPV smoothing tied to camera follow toggle — lerp 0.0004 smooth / 0.08 tight, FPV Smoothness slider (0.0002–0.05)
 - [x] Dot colour mode selector — Leg/Route/White, auto-defaults by colour mode, point light matches in Route mode
 
-## Phase 5 — Dashcam integration
+## Phase 5 — Pi deployment ✅
+
+- [x] Static Vite build deployed on the Pi (jobpi)
+- [x] Served by Nginx on port 3002
+- [x] Exposed via the pi-home Cloudflare Tunnel
+- [x] Live at https://visualiser.job-joseph.com
+
+## Phase 6 — Dashcam integration
 
 - [ ] Sync dashcam video timestamps with GPX timestamps
 - [ ] Display footage alongside the route at the corresponding point
 
-## Phase 6 — Polish and portfolio integration
+## Phase 7 — Polish and portfolio integration (next)
 
 - [ ] Embed on job-joseph.com
 - [ ] Shareable URL state (which GPX, playback position, view mode)

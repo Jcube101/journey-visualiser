@@ -153,3 +153,19 @@ Bottom offset stacking for multiple optional charts needs a single computed valu
 ### Dot colour in Route mode requires cached global ranges
 
 When the dot colour matches the speed or elevation gradient in real time, it needs global min/max values to normalise against. Computing these by iterating all raw points every frame is wasteful — the values don't change during playback. Cache them with `useMemo` keyed on the tracks array. The per-frame work reduces to a single `speedToColor` or `elevationToColor` call.
+
+## 2026-06-12 — Pi static frontend deployment
+
+### Nginx can't traverse a 700 home directory, even when dist/ is correct
+
+The single biggest gotcha deploying this to the Pi: Nginx's `www-data` worker cannot traverse a `700` home directory to reach `dist/`, even though `dist/` and all its contents had correct permissions. Every request returned HTTP 500 with `stat() ".../dist/index.html" failed (13: Permission denied)` in the Nginx error log. The fix is `sudo chmod o+x /home/jcube` — this adds traverse (execute) only, no read bit, so others still can't list the home directory's contents. Easily reversible with `chmod o-x`.
+
+This is **different from the pi-service-migration skill's documented 403 fix** (`chmod -R 755 dist`), which only applies when `dist/` *itself* has wrong permissions. A 403 means the block is on `dist/`; a 500 with "Permission denied" means the block is higher up the path (the home directory or `projects/`). Diagnose with `namei -l /home/<user>/projects/<repo>/dist/index.html` — it shows the permission bits at every level of the path.
+
+### Node v22 works fine on Pi aarch64 for React/Vite builds
+
+The skill recommends Node 18+; the Pi is running v22 and the Vite build completed cleanly on aarch64 despite v22 being newer than recommended. No native-dependency issues for a standard React/Vite stack.
+
+### Static frontends need no systemd service
+
+Unlike the backend migration pattern (venv + uvicorn + systemd), a static frontend deploy is just **Nginx + cloudflared**. There is no service process to supervise — Nginx serves the files. The update workflow is correspondingly simpler than a backend: `git pull → npm install → npm run build → sudo systemctl reload nginx`. No service restart is needed; the Nginx reload picks up the freshly built `dist/` immediately.

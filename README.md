@@ -4,6 +4,12 @@ A cinematic 3D GPX route visualiser. Drop in one or more GPX files and watch an 
 
 Designed for repeat use across any future trip — not hardcoded to any specific journey.
 
+## Live Demo
+
+🌐 **https://visualiser.job-joseph.com**
+
+Self-hosted on a Raspberry Pi behind a Cloudflare Tunnel.
+
 ## View Modes
 
 - **Free-rotate** — draggable, zoomable 3D view with OrbitControls
@@ -91,4 +97,16 @@ This skips tool approval prompts so Claude can edit files, run builds, and execu
 
 ## Hosting
 
-Self-hosted on a Raspberry Pi behind a Cloudflare tunnel, served via Nginx from the `dist/` folder. Deploy by building locally and copying `dist/` to the Pi.
+Live at **https://visualiser.job-joseph.com**.
+
+Self-hosted on a Raspberry Pi (jobpi). The static Vite build in `dist/` is served by **Nginx on port 3002**, exposed to the internet via the **pi-home Cloudflare Tunnel** on the subdomain **visualiser.job-joseph.com**. There is no backend and no systemd service — just Nginx serving static files plus the tunnel handling HTTPS.
+
+### Update workflow
+
+The repo is cloned on the Pi. After pushing code changes, update the live site by rebuilding on the Pi and reloading Nginx:
+
+```bash
+git pull && npm install && npm run build && sudo systemctl reload nginx
+```
+
+No service restart is needed — Nginx serves the freshly built `dist/` immediately after reload.

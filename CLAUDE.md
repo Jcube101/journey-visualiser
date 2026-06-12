@@ -15,6 +15,18 @@ GPX Journey Visualiser — a React + Vite + Three.js web app that renders GPX ro
 - `node scripts/build-index.js` — scaffold public/gpx/index.json from .gpx files
 - `node tests/gpxParser.test.js [file.gpx]` — run parser + transform tests
 
+## Deployment
+
+The app is a pure static frontend — `npm run build` emits to `dist/`, which is served by **Nginx on port 3002** on the Raspberry Pi (jobpi). **Cloudflare Tunnel** (pi-home) handles HTTPS and exposes it on the subdomain **visualiser.job-joseph.com**. No backend, no systemd service.
+
+To update the live site after code changes (the repo is cloned on the Pi):
+
+```bash
+git pull && npm install && npm run build && sudo systemctl reload nginx
+```
+
+**Permissions note:** `/home/jcube` must have `o+x` (`sudo chmod o+x /home/jcube`) so the Nginx `www-data` worker can traverse into the path to reach `dist/`. Without it, every request returns HTTP 500 with "Permission denied" in the Nginx error log, even when `dist/` itself has correct permissions.
+
 ## Architecture
 
 ```

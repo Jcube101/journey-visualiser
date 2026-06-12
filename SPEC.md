@@ -387,3 +387,18 @@ In vertical preview or cinema mode: legend shifts to sit inside the 9:16 recordi
 - `left = (viewportWidth - frameWidth) / 2 + 16px` where `frameWidth = viewportHeight × 9/16`
 - `top = 56px` (below the title card area: 40px title + 16px gap)
 - Responsive to window resizes via `useEffect` + resize listener
+
+## Hosting
+
+Deployed as a static site — no backend, no server runtime.
+
+| Item | Value |
+|---|---|
+| Host | Raspberry Pi (jobpi) — aarch64, Debian 13 Trixie |
+| Server | Nginx static file server, serving `dist/` |
+| Port | 3002 |
+| Tunnel | Cloudflare Tunnel `pi-home` |
+| Subdomain | visualiser.job-joseph.com (HTTPS via the tunnel) |
+| Node | v22 — confirmed working on Pi aarch64 for React/Vite builds |
+
+Build output (`npm run build` → `dist/`) is served directly by Nginx; the Cloudflare Tunnel proxies `https://visualiser.job-joseph.com` to `localhost:3002`. No systemd service is involved.
