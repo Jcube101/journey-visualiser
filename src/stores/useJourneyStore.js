@@ -2,7 +2,6 @@ import { create } from 'zustand'
 import { VIEW_MODES } from '../constants/viewModes'
 import { COLOUR_MODES } from '../constants/colourModes'
 import { TRACK_PALETTE } from '../constants/palette'
-import { transformToScene, computeGlobalBounds } from '../utils/geoTransform'
 
 let nextId = 1
 
@@ -165,19 +164,29 @@ export const useJourneyStore = create((set, get) => ({
 
   setElevationExaggeration: (value) => {
     const s = get()
-    if (s.tracks.length === 0) {
+    if (s.tracks.length === 0 || value === s.elevationExaggeration) {
       set({ elevationExaggeration: value })
       return
     }
 
-    const globalBounds = computeGlobalBounds(s.tracks.map((t) => t.metadata))
+    // The backend pre-projects scene coords at a fixed exaggeration, and the
+    // client no longer holds raw lat/lon/ele to re-project from. But scene Y is
+    // strictly proportional to the exaggeration factor, so a pure Y rescale by
+    // the ratio is mathematically identical to re-running the projection.
+    const ratio = value / s.elevationExaggeration
 
     const tracks = s.tracks.map((t) => {
-      const { points: scenePoints, sceneMetadata } = transformToScene(
-        t.rawPoints,
-        t.metadata,
-        { overrideBounds: globalBounds, elevationExaggeration: value }
-      )
+      const scenePoints = t.scenePoints.map((p) => ({
+        ...p,
+        y: p.y * ratio,
+        ele: p.ele != null ? p.ele * ratio : p.ele,
+      }))
+      const sb = t.sceneMetadata.sceneBounds
+      const sceneMetadata = {
+        ...t.sceneMetadata,
+        elevationExaggeration: value,
+        sceneBounds: { ...sb, minY: sb.minY * ratio, maxY: sb.maxY * ratio },
+      }
       return { ...t, scenePoints, sceneMetadata }
     })
 

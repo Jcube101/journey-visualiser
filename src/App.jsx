@@ -171,20 +171,16 @@ function buildJourneyTitle(tracks) {
 
   let furthestCity = lastCity
   let maxDist = 0
-  const startPt = tracks[0].rawPoints[0]
+  // Furthest leg endpoint from the start, measured in scene space (raw lat/lon
+  // are no longer on the client; scene x/z is a faithful monotonic proxy).
+  const startPt = tracks[0].scenePoints[0]
   if (startPt) {
-    const R = 6371
     for (const track of tracks) {
       const parts = track.label.split(/[→—]/)
       const dest = parts[parts.length - 1].trim()
-      const lp = track.rawPoints[track.rawPoints.length - 1]
+      const lp = track.scenePoints[track.scenePoints.length - 1]
       if (lp) {
-        const dLat = (lp.lat - startPt.lat) * Math.PI / 180
-        const dLon = (lp.lon - startPt.lon) * Math.PI / 180
-        const a = Math.sin(dLat / 2) ** 2 +
-          Math.cos(startPt.lat * Math.PI / 180) * Math.cos(lp.lat * Math.PI / 180) *
-          Math.sin(dLon / 2) ** 2
-        const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        const d = Math.hypot(lp.x - startPt.x, lp.z - startPt.z)
         if (d > maxDist) { maxDist = d; furthestCity = dest }
       }
     }

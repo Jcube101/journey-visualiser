@@ -1,119 +1,74 @@
-import { parseGpx } from './gpxParser'
-import { transformToScene, computeGlobalBounds } from './geoTransform'
-
 /**
- * Load the GPX manifest and return fully parsed + transformed legs.
- * All legs share the same coordinate system (global bounds).
+ * Load fully parsed + transformed legs from the backend API.
+ *
+ * The server (journey-visualiser-api) reads the private GPX, merges/trims/
+ * transforms every leg against shared global bounds and returns scene
+ * coordinates directly — so this function no longer parses GPX or runs
+ * geoTransform on the client. It just fetches `/api/legs` and normalises the
+ * response into the shape the Zustand store's loadLegs() expects.
+ *
+ * The relative `/api/legs` path works unchanged on localhost dev (Vite proxy /
+ * nginx) and on visualiser.job-joseph.com (nginx → 127.0.0.1:8009).
+ *
+ * gpxParser.js + geoTransform.js are intentionally left untouched — they still
+ * back the ad-hoc drag-and-drop flow.
  *
  * @returns {Promise<Array<{ legName, points, metadata, scenePoints, sceneMetadata, colour }>>}
- *          Returns empty array if no manifest or no legs.
+ *          Returns empty array if the API is unreachable or has no legs.
  */
 export async function loadManifest() {
-  let manifest
+  let apiLegs
   try {
-    const res = await fetch('/gpx/index.json')
+    const res = await fetch('/api/legs')
     if (!res.ok) return []
-    manifest = await res.json()
+    apiLegs = await res.json()
   } catch {
     return []
   }
 
-  if (!Array.isArray(manifest) || manifest.length === 0) return []
+  if (!Array.isArray(apiLegs) || apiLegs.length === 0) return []
 
-  // Phase 1: fetch and parse all files, merge per-leg
-  const legs = []
+  return apiLegs.map((leg) => {
+    // API points are already projected scene coords {x,y,z,speed,time,segmentIndex}.
+    // Enrich them for downstream consumers:
+    //  - `time` → Date (playback, day/night, camera ordering call .getTime()/.getHours())
+    //  - `ele`  → scene y, used purely as an elevation proxy for colouring. Scene y is
+    //    an affine function of true elevation, so normalised (min→max) colours are
+    //    identical. Raw lat/lon/ele never reach the client anymore.
+    const points = leg.points.map((p) => ({
+      x: p.x,
+      y: p.y,
+      z: p.z,
+      ele: p.y,
+      speed: p.speed,
+      segmentIndex: p.segmentIndex,
+      time: p.time ? new Date(p.time) : null,
+    }))
 
-  for (const entry of manifest) {
-    const legPoints = []
+    const startTime = points[0]?.time || null
+    const endTime = points[points.length - 1]?.time || null
 
-    for (const filename of entry.files) {
-      const res = await fetch(`/gpx/${filename}`)
-      if (!res.ok) {
-        console.warn(`Failed to fetch /gpx/${filename}`)
-        continue
-      }
-      const gpxText = await res.text()
-      const { points } = parseGpx(gpxText)
-      legPoints.push(...points)
+    const metadata = {
+      name: leg.leg,
+      totalPoints: leg.totalPoints ?? points.length,
+      segments: leg.segments ?? 1,
+      startTime,
+      endTime,
+      durationMs: leg.durationMs ?? 0,
+      // No raw GPS bounds — the server owns the projection. Kept null so any
+      // accidental consumer fails loudly rather than reading stale numbers.
+      bounds: null,
     }
 
-    if (legPoints.length === 0) continue
-
-    // Sort merged points by timestamp
-    legPoints.sort((a, b) => {
-      if (!a.time || !b.time) return 0
-      return a.time.getTime() - b.time.getTime()
-    })
-
-    // Compute per-leg metadata from merged points
-    const metadata = computeMetadata(entry.leg, legPoints)
-
-    legs.push({
-      legName: entry.leg,
-      colour: entry.colour,
-      points: legPoints,
-      metadata,
-    })
-  }
-
-  if (legs.length === 0) return []
-
-  // Phase 2: compute global bounds across all legs
-  const globalBounds = computeGlobalBounds(legs.map((l) => l.metadata))
-
-  // Phase 3: transform all legs using shared bounds
-  const result = legs.map((leg) => {
-    const { points: scenePoints, sceneMetadata } = transformToScene(
-      leg.points,
-      leg.metadata,
-      { overrideBounds: globalBounds }
-    )
     return {
-      legName: leg.legName,
-      colour: leg.colour,
-      points: leg.points,
-      metadata: leg.metadata,
-      scenePoints,
-      sceneMetadata,
+      legName: leg.leg,
+      colour: leg.colour, // may be null → loadLegs() assigns from TRACK_PALETTE
+      // rawPoints and scenePoints are separate arrays so the elevation slider
+      // can rescale scenePoints without mutating the canonical set.
+      points: points.map((p) => ({ ...p })),
+      scenePoints: points,
+      metadata,
+      sceneMetadata: leg.sceneMetadata,
     }
   })
-
-  return result
-}
-
-function computeMetadata(name, points) {
-  const bounds = {
-    minLat: Infinity,
-    maxLat: -Infinity,
-    minLon: Infinity,
-    maxLon: -Infinity,
-    minEle: Infinity,
-    maxEle: -Infinity,
-  }
-
-  const segmentIndices = new Set()
-
-  for (const pt of points) {
-    if (pt.lat < bounds.minLat) bounds.minLat = pt.lat
-    if (pt.lat > bounds.maxLat) bounds.maxLat = pt.lat
-    if (pt.lon < bounds.minLon) bounds.minLon = pt.lon
-    if (pt.lon > bounds.maxLon) bounds.maxLon = pt.lon
-    if (pt.ele < bounds.minEle) bounds.minEle = pt.ele
-    if (pt.ele > bounds.maxEle) bounds.maxEle = pt.ele
-    segmentIndices.add(pt.segmentIndex)
-  }
-
-  const startTime = points[0]?.time || null
-  const endTime = points[points.length - 1]?.time || null
-  const durationMs = startTime && endTime ? endTime.getTime() - startTime.getTime() : 0
-
-  return {
-    name,
-    totalPoints: points.length,
-    segments: segmentIndices.size,
-    startTime,
-    endTime,
-    durationMs,
-    bounds,
-  }
 }

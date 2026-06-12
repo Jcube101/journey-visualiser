@@ -1,4 +1,18 @@
 /**
+ * Approximate ground distance in km between two scene-space points that share
+ * the same projection scale. Dividing by `scale` recovers degrees (the X axis
+ * already carries the cos(lat) correction), and 1° ≈ 111.32 km. Used by the UI
+ * readouts now that raw lat/lon never reach the client — the backend projects
+ * everything, so distance is reconstructed from scene coords.
+ *
+ * @returns {number} km, or 0 if scale is missing/invalid
+ */
+export function sceneDistanceKm(ax, az, bx, bz, scale) {
+  if (!scale || scale <= 0) return 0
+  return Math.hypot((bx - ax) / scale, (bz - az) / scale) * 111.32
+}
+
+/**
  * Compute combined bounds from multiple metadata objects.
  * Use this to get a shared coordinate frame before transforming individual legs.
  *

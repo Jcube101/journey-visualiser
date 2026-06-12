@@ -1,6 +1,7 @@
 import { useRef, useMemo, useEffect, useCallback, useState } from 'react'
 import { useJourneyStore } from '../../stores/useJourneyStore'
 import { usePlaybackPoints } from '../../hooks/usePlaybackPoints'
+import { sceneDistanceKm } from '../../utils/geoTransform'
 
 const CHART_HEIGHT = 60
 const PADDING_TOP = 12
@@ -28,23 +29,12 @@ function speedColor(t) {
   return `rgb(${last.r},${last.g},${last.b})`
 }
 
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371
-  const dLat = ((lat2 - lat1) * Math.PI) / 180
-  const dLon = ((lon2 - lon1) * Math.PI) / 180
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
-
 export default function SpeedGraph() {
   const tracks = useJourneyStore((s) => s.tracks)
   const currentPointIndex = useJourneyStore((s) => s.currentPointIndex)
   const setCurrentPointIndex = useJourneyStore((s) => s.setCurrentPointIndex)
   const showElevProfile = useJourneyStore((s) => s.settings.elevationProfile)
+  const scale = useJourneyStore((s) => s.globalSceneMetadata?.scale)
 
   const allPoints = usePlaybackPoints()
   const canvasRef = useRef(null)
@@ -59,10 +49,7 @@ export default function SpeedGraph() {
     for (let i = 1; i < allPoints.length; i++) {
       const prev = allPoints[i - 1]
       const cur = allPoints[i]
-      const d =
-        prev.lat != null && cur.lat != null
-          ? haversine(prev.lat, prev.lon, cur.lat, cur.lon)
-          : 0
+      const d = sceneDistanceKm(prev.x, prev.z, cur.x, cur.z, scale)
       distances.push(distances[i - 1] + d)
     }
 
@@ -76,7 +63,7 @@ export default function SpeedGraph() {
     }
 
     return { distances, totalDist, maxSpeed }
-  }, [allPoints])
+  }, [allPoints, scale])
 
   useEffect(() => {
     if (!containerRef.current) return

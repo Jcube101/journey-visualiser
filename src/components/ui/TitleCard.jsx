@@ -6,16 +6,6 @@ const DURATION = 2500
 const FADE_IN = 500
 const FADE_OUT = 500
 
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
-
 export default function TitleCard() {
   const titleCard = useJourneyStore((s) => s.settings.titleCard)
   const cinemaMode = useJourneyStore((s) => s.settings.cinemaMode)
@@ -70,14 +60,15 @@ export default function TitleCard() {
 
   let furthestCity = lastCity
   let maxDist = 0
-  const startPt = tracks[0].rawPoints[0]
+  // Furthest leg endpoint from start, in scene space (no raw lat/lon on client).
+  const startPt = tracks[0].scenePoints[0]
   if (startPt) {
     for (const track of tracks) {
       const parts = track.label.split(/[→—]/)
       const dest = parts[parts.length - 1].trim()
-      const lastPt = track.rawPoints[track.rawPoints.length - 1]
+      const lastPt = track.scenePoints[track.scenePoints.length - 1]
       if (lastPt) {
-        const d = haversine(startPt.lat, startPt.lon, lastPt.lat, lastPt.lon)
+        const d = Math.hypot(lastPt.x - startPt.x, lastPt.z - startPt.z)
         if (d > maxDist) { maxDist = d; furthestCity = dest }
       }
     }
@@ -92,12 +83,17 @@ export default function TitleCard() {
     title = `${firstCity} → ${lastCity}`
   }
 
+  // Approximate ground distance from scene coords: dividing by the shared
+  // projection scale recovers degrees (x already carries the cos(lat) factor),
+  // and 1° ≈ 111.32 km. Close enough for the title's headline figure.
+  const scale = tracks[0]?.sceneMetadata?.scale
   let totalKm = 0
-  for (let i = 1; i < allPoints.length; i++) {
-    const prev = allPoints[i - 1]
-    const cur = allPoints[i]
-    if (prev.lat != null && cur.lat != null) {
-      totalKm += haversine(prev.lat, prev.lon, cur.lat, cur.lon)
+  if (scale > 0) {
+    for (let i = 1; i < allPoints.length; i++) {
+      const prev = allPoints[i - 1]
+      const cur = allPoints[i]
+      const dDeg = Math.hypot((cur.x - prev.x) / scale, (cur.z - prev.z) / scale)
+      totalKm += dDeg * 111.32
     }
   }
 

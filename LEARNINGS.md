@@ -169,3 +169,27 @@ The skill recommends Node 18+; the Pi is running v22 and the Vite build complete
 ### Static frontends need no systemd service
 
 Unlike the backend migration pattern (venv + uvicorn + systemd), a static frontend deploy is just **Nginx + cloudflared**. There is no service process to supervise — Nginx serves the files. The update workflow is correspondingly simpler than a backend: `git pull → npm install → npm run build → sudo systemctl reload nginx`. No service restart is needed; the Nginx reload picks up the freshly built `dist/` immediately.
+
+## 2026-06-12 — Moving GPX private: frontend repoint to /api/legs
+
+The GPX is now served privately by a FastAPI backend (`journey-visualiser-api`, systemd `journey-api`, 127.0.0.1:8009) that parses/merges/trims/transforms server-side and returns scene coordinates. The frontend `loadManifest.js` was repointed from `fetch('/gpx/index.json')` + client-side GPX parse/geoTransform to a single `fetch('/api/legs')`. Several non-obvious consequences fell out of the API deliberately **never** returning raw lat/lon/ele:
+
+### Elevation colour mode needs an `ele` proxy — alias it to scene Y
+
+The default ELEVATION colour mode reads `point.ele` in RouteTrail/RouteGlow/AnimatedDot to normalise colours. The API strips real elevation, but scene `y` is an affine function of true elevation (`y = (ele − centreEle) · eleScale · exaggeration`), so normalising over `y` gives an **identical** 0→1 colour ramp. Aliasing `ele = y` in `loadManifest` kept all three components working untouched — no need to send the real metres.
+
+### Elevation slider: rescale Y by the exaggeration ratio, don't re-project
+
+`setElevationExaggeration` used to re-run `transformToScene(rawPoints, …)` on raw coords. With no raw coords client-side that would produce `NaN` and blank the scene. But scene Y is **strictly proportional** to the exaggeration factor, so `y_new = y_old · (newExag / oldExag)` is mathematically identical to re-projecting — a pure rescale of Y (and the Y scene-bounds) with no lat/lon needed. Cheap and exact.
+
+### Distance readouts: a shared `sceneDistanceKm()` helper from scene deltas
+
+LiveStatsBar/SpeedGraph/ElevationProfile/TitleCard all computed distance via haversine on lat/lon. Without those, distance is reconstructed from scene space: dividing a scene delta by the shared projection `scale` recovers degrees (the X axis already carries the `cos(lat)` correction), and `1° ≈ 111.32 km`. Factored into `sceneDistanceKm(ax, az, bx, bz, scale)` in `geoTransform.js` so the magic constant lives in one place.
+
+### JSON loses the Date type — re-parse `time` from the ISO string
+
+The client parser produced `Date` objects; JSON serialisation flattens these to ISO strings. Many consumers call `.getTime()`/`.getHours()` (playback timeline, day/night background, camera ordering), which silently break on a string. `loadManifest` must re-wrap each point's `time` as `new Date(p.time)` after the fetch.
+
+### Don't `git pull` a Pi working tree that has uncommitted edits
+
+The documented deploy recipe starts with `git pull`, which assumes changes arrive from the remote. When editing **directly in the Pi clone**, the working tree already holds the changes — pulling first risks merge conflicts against the uncommitted edits (and is a no-op at best). The clean order is: edit in the working tree → build/deploy → `git commit` → `git push`. Future pulls are then conflict-free because local and remote are back in sync.

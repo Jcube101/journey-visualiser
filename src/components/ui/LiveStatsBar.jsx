@@ -1,11 +1,13 @@
 import { useJourneyStore } from '../../stores/useJourneyStore'
 import { usePlaybackPoints } from '../../hooks/usePlaybackPoints'
+import { sceneDistanceKm } from '../../utils/geoTransform'
 
 export default function LiveStatsBar() {
   const liveStats = useJourneyStore((s) => s.settings.liveStats)
   const dotData = useJourneyStore((s) => s.dotData)
   const dotPosition = useJourneyStore((s) => s.dotPosition)
   const currentPointIndex = useJourneyStore((s) => s.currentPointIndex)
+  const scale = useJourneyStore((s) => s.globalSceneMetadata?.scale)
 
   const allPoints = usePlaybackPoints()
 
@@ -18,9 +20,7 @@ export default function LiveStatsBar() {
   for (let i = 1; i <= currentPointIndex && i < allPoints.length; i++) {
     const prev = allPoints[i - 1]
     const cur = allPoints[i]
-    if (prev.lat != null && cur.lat != null) {
-      distanceKm += haversine(prev.lat, prev.lon, cur.lat, cur.lon)
-    }
+    distanceKm += sceneDistanceKm(prev.x, prev.z, cur.x, cur.z, scale)
   }
 
   const drivingMs = dotData.drivingTimeMs || 0
@@ -45,14 +45,4 @@ function Row({ label, value }) {
       <span className="text-white/80 tabular-nums">{value}</span>
     </div>
   )
-}
-
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLon = (lon2 - lon1) * Math.PI / 180
-  const a = Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
