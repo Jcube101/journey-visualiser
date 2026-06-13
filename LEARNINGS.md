@@ -224,3 +224,23 @@ Dividing a scene-space delta by the shared projection `scale` recovers degrees (
 ### SCP from Git Bash fails with a cloudflared ProxyCommand
 
 Copying files to the Pi via `scp` from **Git Bash** fails when `~/.ssh/config` uses a cloudflared `ProxyCommand` with a Windows-style path — Git Bash can't execute it. Use **PowerShell** `scp` (with `C:\Users\...` paths) instead, or rewrite the `ProxyCommand` path to `/c/Users/...` for Git Bash compatibility.
+
+## 2026-06-13 — In-memory startup caching for the /api/legs backend
+
+`/api/legs` re-parsed and re-projected every GPX file on every request. The processed result is immutable between GPX uploads, so the fix is **build once at startup, serve from memory** — the correct pattern for expensive one-time computation behind a read-mostly endpoint.
+
+### FastAPI `lifespan` handler is the right place to build the cache
+
+A `lifespan` async context manager runs the build **before the service accepts requests**, so there's no lazy first-hit penalty — the very first request is already warm. (Cleaner than the deprecated `@app.on_event("startup")`.) The cache lives in module-level variables; a `POST /api/cache/reload` endpoint rebuilds them after new files are added, and `/health` exposes a `cache_built_at` timestamp so you can see when it last built.
+
+### Cache the *pre-serialised bytes*, not just the Python object
+
+Caching the Python object still made FastAPI re-serialise ~1.5 MB of JSON on every request (~0.2s). Serialising **once** at build time into `json.dumps(...).encode()` and returning a raw `Response(content=bytes, media_type="application/json")` drops the hot path to a memory read. Result: **0.49s → 0.010s (≈50×)**, constant regardless of dataset size.
+
+### Custom query params must bypass the cache
+
+The cache is keyed to the default parameters. A request with `?exaggeration=` needs a different projection, so it **correctly skips the cache and computes fresh** — only the default (the sole hot path, since the frontend's elevation slider rescales client-side) is served from bytes. Caching only the common case keeps the fast path trivial without breaking the flexible one.
+
+### Distinguish endpoint compute from network latency
+
+Through the Cloudflare Tunnel `/api/legs` takes ~1.37s, but the endpoint itself answers in 0.010s locally — the difference is **network overhead (Cloudflare edge ↔ Pi), not compute**, so there's nothing to optimise server-side there. The originally-reported ~30s could not be reproduced (steady-state was 0.49s before caching); it was most likely a **Pi cold start or load spike**, not normal operation. Lesson: measure the local endpoint and the tunnel separately before assuming the code is the bottleneck.
