@@ -63,6 +63,25 @@ Output goes to `dist/`. Preview locally with `npm run preview`.
 ]
 ```
 
+## Adding a new trip
+
+The visualiser hosts a **library of trips**, each in its own subfolder under the API's private data directory on the Pi (`~/projects/journey-visualiser-api/data/gpx/`). To add one:
+
+1. Create `data/gpx/{trip-id}/` on the Pi (e.g. `data/gpx/bengaluru-circuit/`).
+2. Drop the trip's `.gpx` files into that folder.
+3. Create `data/gpx/{trip-id}/index.json` with the leg groupings:
+   ```json
+   [
+     { "leg": "Bengaluru Circuit", "colour": null, "files": ["part1.gpx", "part2.gpx"] }
+   ]
+   ```
+4. Add an entry to `data/gpx/trips.json`:
+   ```json
+   { "id": "bengaluru-circuit", "name": "Bengaluru Circuit", "date": "June 2026", "description": "100km+ drive around the edges of Bengaluru" }
+   ```
+5. Rebuild that trip's cache: `curl -X POST localhost:8009/api/cache/reload/bengaluru-circuit`
+6. The trip appears in the trip library drawer instantly — no rebuild or service restart needed.
+
 ## View Modes
 
 Four view modes selectable from the pill at top-centre: **Free · Iso · FPV · Top**

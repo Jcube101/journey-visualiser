@@ -244,3 +244,13 @@ The cache is keyed to the default parameters. A request with `?exaggeration=` ne
 ### Distinguish endpoint compute from network latency
 
 Through the Cloudflare Tunnel `/api/legs` takes ~1.37s, but the endpoint itself answers in 0.010s locally — the difference is **network overhead (Cloudflare edge ↔ Pi), not compute**, so there's nothing to optimise server-side there. The originally-reported ~30s could not be reproduced (steady-state was 0.49s before caching); it was most likely a **Pi cold start or load spike**, not normal operation. Lesson: measure the local endpoint and the tunnel separately before assuming the code is the bottleneck.
+
+## 2026-06-19 — Multi-trip library
+
+### Per-trip subfolder structure scales cleanly
+
+Reorganising `data/gpx/` into one subfolder per trip (`trips.json` master list + `{trip-id}/index.json` + GPX) means **adding a new trip needs no code changes**: create the folder, drop the GPX files in, create its `index.json` with the leg groupings, add an entry to `trips.json`, and hit the per-trip cache reload endpoint. The trip then appears in the drawer instantly. The cache being keyed by `trip_id` (with a `POST /api/cache/reload/{trip_id}`) is what makes the "drop files, reload one trip" loop possible without restarting the service or rebuilding every trip.
+
+### SCP with quoted filenames handles spaces on PowerShell
+
+The original Kodai GPX filenames contain spaces (e.g. `From Bengaluru to Dindugul_1.gpx`). Copying them to the Pi from a Windows machine works as long as the source path is **quoted** in the PowerShell `scp` command — quoting keeps the space-containing filename a single argument rather than being split into multiple paths.

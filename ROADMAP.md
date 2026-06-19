@@ -76,8 +76,14 @@
 - [x] Frontend `loadManifest.js` repointed to `/api/legs` (relative path — Vite proxy in dev, Nginx `/api/` proxy in prod)
 - [x] Full stack live at https://visualiser.job-joseph.com
 
-## Phase 7 — Polish and portfolio integration (next)
+## Phase 7 — Polish and portfolio integration
 
+- [x] Multi-trip support — `data/gpx/` reorganised into a per-trip subfolder structure (`trips.json` master list + `{trip-id}/index.json` + GPX per trip)
+- [x] Trip library drawer — 280px left slide-in over the scene, lucide `Layers` icon button, one card per trip (name, date, description, palette preview strip), active trip shows a checkmark and no Load button; closes on outside-click / Escape, hidden in cinema mode
+- [x] Backend endpoints — `GET /api/trips` (metadata list) and `GET /api/trips/{id}/legs` (transformed legs), with the legacy `/api/legs` kept as an alias for the default trip
+- [x] Per-trip startup cache — keyed by `trip_id`, built at startup; `POST /api/cache/reload/{trip_id}` rebuilds a single trip
+- [x] Title card now uses the trip name from `trips.json` (falling back to the derived "Origin → Peak → Origin" title)
+- [x] Bengaluru Circuit added as a second trip
 - [ ] Embed on job-joseph.com
 - [ ] Shareable URL state (which GPX, playback position, view mode)
 - [ ] Mobile responsiveness

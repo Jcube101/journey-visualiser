@@ -43,6 +43,18 @@ The GPX data is served privately by a FastAPI service so raw GPX is never static
   - Distance readouts use a shared **`sceneDistanceKm()`** helper (in `geoTransform.js`) — scene delta ÷ `scale` × 111.32 km/° — consumed by LiveStatsBar/SpeedGraph/ElevationProfile/TitleCard.
   - Point `time` is **re-parsed to a `Date`** from the ISO string after fetch (JSON serialisation loses the Date type).
 
+## Multi-trip library
+
+The app supports a **library of trips**, each in its own subfolder on the Pi:
+
+- **Data layout:** a master list lives at `data/gpx/trips.json` (`[{ id, name, date, description }]`). Each trip lives in `data/gpx/{trip-id}/` with its own `index.json` (leg groupings) and GPX files.
+- **API:**
+  - `GET /api/trips` — returns the trip metadata list (`trips.json`) as-is, no GPX parsing.
+  - `GET /api/trips/{id}/legs` — returns that trip's transformed scene-coordinate legs (same shape and pipeline as the legacy `/api/legs`, which is kept as an alias for the default trip).
+- **Cache:** keyed by `trip_id` and built per trip at startup. `POST /api/cache/reload` rebuilds every trip; `POST /api/cache/reload/{trip_id}` rebuilds a single trip (useful after dropping new GPX files into one trip's folder).
+- **Frontend store:** `useJourneyStore` holds `trips`, `activeTripId`, and `tripLoading`, plus a `loadTrip(tripId)` action that fetches the trip's legs, swaps the tracks, resets playback, and re-arms the intro animation. The app loads the first trip by default on startup.
+- **UI:** the trip switcher is `src/components/ui/TripLibrary.jsx` — a lucide `Layers` icon button that opens a left slide-in drawer of trip cards.
+
 ## Architecture
 
 ```
