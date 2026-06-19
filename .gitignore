@@ -27,4 +27,10 @@ dist-ssr
 *.sln
 *.sw?
 
-.png
+*.png
+
+# Playwright MCP output
+.playwright-mcp/
+
+# Claude Code local settings (machine-specific)
+.claude/settings.local.json
