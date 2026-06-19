@@ -1,25 +1,48 @@
 /**
- * Load fully parsed + transformed legs from the backend API.
+ * Load trip metadata + fully parsed/transformed legs from the backend API.
  *
- * The server (journey-visualiser-api) reads the private GPX, merges/trims/
- * transforms every leg against shared global bounds and returns scene
- * coordinates directly — so this function no longer parses GPX or runs
- * geoTransform on the client. It just fetches `/api/legs` and normalises the
- * response into the shape the Zustand store's loadLegs() expects.
+ * The server (journey-visualiser-api) now serves a library of trips:
+ *   - `GET /api/trips`               → the trip metadata list (id/name/date/...)
+ *   - `GET /api/trips/{id}/legs`     → that trip's scene-coordinate legs
  *
- * The relative `/api/legs` path works unchanged on localhost dev (Vite proxy /
+ * The server reads the private GPX, merges/trims/transforms every leg against
+ * shared global bounds and returns scene coordinates directly — so this module
+ * no longer parses GPX or runs geoTransform on the client. It just fetches and
+ * normalises the leg response into the shape the Zustand store's loadLegs()
+ * expects.
+ *
+ * The relative `/api` paths work unchanged on localhost dev (Vite proxy /
  * nginx) and on visualiser.job-joseph.com (nginx → 127.0.0.1:8009).
  *
  * gpxParser.js + geoTransform.js are intentionally left untouched — they still
  * back the ad-hoc drag-and-drop flow.
- *
- * @returns {Promise<Array<{ legName, points, metadata, scenePoints, sceneMetadata, colour }>>}
- *          Returns empty array if the API is unreachable or has no legs.
  */
-export async function loadManifest() {
+
+/**
+ * Fetch the master trip list.
+ * @returns {Promise<Array<{ id, name, date, description }>>} empty on failure.
+ */
+export async function loadTrips() {
+  try {
+    const res = await fetch('/api/trips')
+    if (!res.ok) return []
+    const trips = await res.json()
+    return Array.isArray(trips) ? trips : []
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Fetch + normalise one trip's legs.
+ * @param {string} tripId
+ * @returns {Promise<Array<{ legName, points, metadata, scenePoints, sceneMetadata, colour }>>}
+ *          Returns empty array if the API is unreachable or the trip has no legs.
+ */
+export async function loadTripLegs(tripId) {
   let apiLegs
   try {
-    const res = await fetch('/api/legs')
+    const res = await fetch(`/api/trips/${encodeURIComponent(tripId)}/legs`)
     if (!res.ok) return []
     apiLegs = await res.json()
   } catch {

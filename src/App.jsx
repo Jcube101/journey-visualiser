@@ -23,25 +23,33 @@ import ElevationProfile from './components/ui/ElevationProfile'
 import SpeedGraph from './components/ui/SpeedGraph'
 import ViewModeSelector from './components/ui/ViewModeSelector'
 import TitleCard from './components/ui/TitleCard'
+import TripLibrary from './components/ui/TripLibrary'
 import { useJourneyStore } from './stores/useJourneyStore'
 import { COLOUR_MODES } from './constants/colourModes'
-import { loadManifest } from './utils/loadManifest'
+import { loadTrips } from './utils/loadManifest'
 
 export default function App() {
   const tracks = useJourneyStore((s) => s.tracks)
   const globalSceneMetadata = useJourneyStore((s) => s.globalSceneMetadata)
   const colourMode = useJourneyStore((s) => s.colourMode)
   const settings = useJourneyStore((s) => s.settings)
-  const loadLegs = useJourneyStore((s) => s.loadLegs)
+  const setTrips = useJourneyStore((s) => s.setTrips)
+  const loadTrip = useJourneyStore((s) => s.loadTrip)
+  const tripLoading = useJourneyStore((s) => s.tripLoading)
   const [loading, setLoading] = useState(true)
   const recordTimerRef = useRef(null)
 
   useEffect(() => {
-    loadManifest().then((legs) => {
-      if (legs.length > 0) loadLegs(legs)
+    async function init() {
+      const trips = await loadTrips()
+      setTrips(trips)
+      // Load the first trip by default.
+      const firstId = trips[0]?.id
+      if (firstId) await loadTrip(firstId)
       setLoading(false)
-    })
-  }, [loadLegs])
+    }
+    init()
+  }, [setTrips, loadTrip])
 
   const handleAutoPlay = useCallback(() => {
     const store = useJourneyStore.getState()
@@ -110,10 +118,11 @@ export default function App() {
       {!cinema && hasTracks && settings.speedGraph && <SpeedGraph />}
       {!cinema && hasTracks && <PlaybackControls />}
       {hasTracks && <SettingsPanel />}
+      {!cinema && <TripLibrary />}
       {!cinema && hasTracks && <LiveStatsBar />}
 
-      {loading && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center">
+      {(loading || tripLoading) && (
+        <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-[1px]">
           <div className="text-white/50 text-sm">Loading journey...</div>
         </div>
       )}
@@ -193,10 +202,15 @@ function buildJourneyTitle(tracks) {
 }
 
 function CinemaTitleOverlay({ tracks }) {
+  // Prefer the explicit trip name from trips.json; fall back to the derived
+  // "Origin → Peak → Origin" title when no active trip name is available.
+  const trips = useJourneyStore((s) => s.trips)
+  const activeTripId = useJourneyStore((s) => s.activeTripId)
+  const tripName = trips.find((t) => t.id === activeTripId)?.name
   return (
     <div className="absolute top-6 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
       <div className="text-white/40 text-sm font-light tracking-widest uppercase">
-        {buildJourneyTitle(tracks)}
+        {tripName || buildJourneyTitle(tracks)}
       </div>
     </div>
   )

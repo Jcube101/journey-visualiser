@@ -2,10 +2,45 @@ import { create } from 'zustand'
 import { VIEW_MODES } from '../constants/viewModes'
 import { COLOUR_MODES } from '../constants/colourModes'
 import { TRACK_PALETTE } from '../constants/palette'
+import { loadTripLegs } from '../utils/loadManifest'
 
 let nextId = 1
 
 export const useJourneyStore = create((set, get) => ({
+  // --- Trip library ---
+  trips: [],
+  activeTripId: null,
+  tripLoading: false,
+
+  setTrips: (trips) => set({ trips: Array.isArray(trips) ? trips : [] }),
+
+  // Fetch a trip's legs, swap out the current tracks for the new ones, and
+  // re-arm the intro animation + playback so the scene presents from the start.
+  loadTrip: async (tripId) => {
+    set({ tripLoading: true })
+    const legs = await loadTripLegs(tripId)
+    if (legs.length === 0) {
+      // Trip has no playable legs yet (e.g. its GPX files aren't on the Pi).
+      // Leave the current scene untouched rather than blanking it out.
+      set({ tripLoading: false })
+      return false
+    }
+    get().loadLegs(legs) // replaces tracks + globalSceneMetadata atomically
+    set({
+      activeTripId: tripId,
+      tripLoading: false,
+      // reset playback to the start of the new trip
+      isPlaying: false,
+      currentPointIndex: 0,
+      activeLeg: null,
+      // re-arm the intro so it replays for the new trip (when enabled)
+      introDone: false,
+      introPlaying: false,
+      introProgress: 0,
+    })
+    return true
+  },
+
   // --- Tracks ---
   tracks: [],
   globalSceneMetadata: null,

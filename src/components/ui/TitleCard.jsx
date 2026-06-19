@@ -11,6 +11,8 @@ export default function TitleCard() {
   const cinemaMode = useJourneyStore((s) => s.settings.cinemaMode)
   const isPlaying = useJourneyStore((s) => s.isPlaying)
   const tracks = useJourneyStore((s) => s.tracks)
+  const trips = useJourneyStore((s) => s.trips)
+  const activeTripId = useJourneyStore((s) => s.activeTripId)
   const allPoints = usePlaybackPoints()
 
   const [visible, setVisible] = useState(false)
@@ -54,6 +56,10 @@ export default function TitleCard() {
 
   if (!visible || tracks.length === 0) return null
 
+  // Prefer the explicit trip name (from trips.json); the derived
+  // "Origin → Peak → Origin" title below is the fallback for when it's absent.
+  const tripName = trips.find((t) => t.id === activeTripId)?.name
+
   const firstCity = tracks[0].label.split(/[→—]/)[0].trim()
   const lastParts = tracks[tracks.length - 1].label.split(/[→—]/)
   const lastCity = lastParts[lastParts.length - 1].trim()
@@ -75,7 +81,9 @@ export default function TitleCard() {
   }
 
   let title
-  if (firstCity === lastCity && furthestCity !== firstCity) {
+  if (tripName) {
+    title = tripName
+  } else if (firstCity === lastCity && furthestCity !== firstCity) {
     title = `${firstCity} → ${furthestCity} → ${lastCity}`
   } else if (firstCity === lastCity) {
     title = firstCity
